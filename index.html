@@ -517,7 +517,7 @@
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
-const APP_VERSION = 'v63'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
+const APP_VERSION = 'v64'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
 // '…니다.' 뒤에서 줄을 바꾼다(화면에는 white-space: pre-line으로 표시).
@@ -880,8 +880,8 @@ function placeDlg() {
   const vv = window.visualViewport;
   const h = vv ? vv.height : window.innerHeight;
   const off = vv ? vv.offsetTop : 0;
-  // 가운데보다 위(30%)에 두어 아래 버튼이 글자판에서 멀어지게 한다.
-  const top = off + Math.max(8, (h - d.offsetHeight) * 0.3);
+  // 가운데보다 조금 위(35%)에 두어 아래 버튼이 글자판에서 멀어지게 한다.
+  const top = off + Math.max(8, (h - d.offsetHeight) * 0.35);
   d.style.setProperty('margin-top', top + 'px', 'important');
 }
 if (window.visualViewport) { visualViewport.addEventListener('resize', placeDlg); visualViewport.addEventListener('scroll', placeDlg); }
