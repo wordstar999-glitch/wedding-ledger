@@ -526,7 +526,7 @@
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
-const APP_VERSION = 'v72'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
+const APP_VERSION = 'v73'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
 // '…니다.' 뒤에서 줄을 바꾼다(화면에는 white-space: pre-line으로 표시).
@@ -823,9 +823,14 @@ function nameMatch(name, q) {
 let noNameOnly = false, dupOnly = false;
 // 같은 이름(공백·대소문자 무시)이 둘 이상인 항목을 찾는다: 이름 -> 개수
 const nameKey = n => (n || '').replace(/\s+/g, '').toLowerCase();
+// 비고가 모두 있고 서로 모두 다르면 구분되는 것으로 보아 동명이인에서 제외한다.
 function dupCounts(list) {
+  const g = new Map();
+  list.forEach(e => { const k = nameKey(e.name); if (k) (g.get(k) || g.set(k, []).get(k)).push(nameKey(e.memo)); });
   const m = new Map();
-  list.forEach(e => { const k = nameKey(e.name); if (k) m.set(k, (m.get(k) || 0) + 1); });
+  g.forEach((memos, k) => {
+    if (memos.length > 1 && !(memos.every(x => x) && new Set(memos).size === memos.length)) m.set(k, memos.length);
+  });
   return m;
 }
 function renderSum() {
@@ -938,7 +943,7 @@ async function commitEdit() {
   try { await dbApply([['put', next]]); } catch { return err('저장 실패'); }
   entries.set(old.no, next);
   if (next.name) {
-    const same = [...entries.values()].filter(e => !e.void && nameKey(e.name) === nameKey(next.name)).length;
+    const same = dupCounts([...entries.values()].filter(e => !e.void)).get(nameKey(next.name)) || 0;
     if (same > 1) dupNote = `동명이인: ${next.name} ${same}명`;
   }
   return old.no;
