@@ -13,13 +13,13 @@
     --t: 1.25rem;   /* 모든 주요 글자 크기(설정의 미리보기와 같음) */
     --s: .9375rem;  /* 보조 글자 크기(설명, 작은 라벨) */
     --bg: #f2f8fd; --surface: #ffffff; --border: #cfe0ef; --text: #101c28; --text2: #4f6479;
-    --hint: #b45309; --strong: #0b3d6b; --comp-text: #c2410c; --comp-line: #f97316; --comp-bg: #ffedd5; --accent: #1d6fb8; --on-accent: #fff; --accent-fg: #1d6fb8; --accent-bg: #dcecfa; --gold: #38bdf8;
+    --excel-bg: #a8e063; --excel-line: #7dc43a; --excel-fg: #1b3300; --hint: #b45309; --strong: #0b3d6b; --comp-text: #c2410c; --comp-line: #f97316; --comp-bg: #ffedd5; --accent: #1d6fb8; --on-accent: #fff; --accent-fg: #1d6fb8; --accent-bg: #dcecfa; --gold: #38bdf8;
     --open-head: #fde9a0; --open-body: #fff8dc; --open-line: #e2b93b; --open-fg: #5a4300; --danger: #b91c1c; --ok: #15803d;
   }
   @media (prefers-color-scheme: dark) {
     :root {
       --bg: #0f1822; --surface: #16232f; --border: #2a3d4f; --text: #e8f1f9; --text2: #9fb4c7;
-      --hint: #fbbf24; --strong: #cfe6ff; --comp-text: #fdba74; --comp-line: #fb923c; --comp-bg: #4a2a12; --accent: #2a78c4; --on-accent: #fff; --accent-fg: #8cc4f5; --accent-bg: #1b3a57; --gold: #5ac8fa;
+      --excel-bg: #8fd14f; --excel-line: #6fb83a; --excel-fg: #12260a; --hint: #fbbf24; --strong: #cfe6ff; --comp-text: #fdba74; --comp-line: #fb923c; --comp-bg: #4a2a12; --accent: #2a78c4; --on-accent: #fff; --accent-fg: #8cc4f5; --accent-bg: #1b3a57; --gold: #5ac8fa;
       --open-head: #6b5513; --open-body: #2a2410; --open-line: #c9a227; --open-fg: #ffeaa6; --danger: #f87171; --ok: #4ade80;
     }
   }
@@ -147,6 +147,7 @@
     color: var(--accent-fg); font-size: var(--t); font-weight: 800;
   }
   .tools button.fill { background: var(--accent); color: var(--on-accent); }
+  .tools #btnXlsx { background: var(--excel-bg); border-color: var(--excel-line); color: var(--excel-fg); }
   /* 한글 글자가 칸 안에서 약간 아래로 쳐져 보이는 것을 보정한다 */
   .tools button, #fNo { padding-bottom: calc(var(--t) * 0.12); }
   .srch-cap { font-size: var(--s); font-weight: 800; color: var(--strong); margin-bottom: -0.25rem; }
@@ -525,7 +526,7 @@
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
-const APP_VERSION = 'v69'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
+const APP_VERSION = 'v70'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
 // '…니다.' 뒤에서 줄을 바꾼다(화면에는 white-space: pre-line으로 표시).
