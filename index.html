@@ -77,6 +77,8 @@
   .help-head { flex: 0 0 auto; display: flex; align-items: center; justify-content: space-between; min-height: 3.25rem; padding: 0 0.5rem 0 1rem; background: var(--surface); border-bottom: 1px solid var(--border); font-size: var(--t); }
   .help-head button { width: 3rem; min-height: 3rem; border: 0; background: none; color: var(--text); font-size: var(--t); font-weight: 800; }
   .help-body { flex: 1; min-height: 0; overflow-y: auto; padding: 0.75rem; display: flex; flex-direction: column; gap: 0.75rem; }
+  /* '…니다.'로 끝나는 문장은 줄을 바꿔 표시한다 */
+  .upd-msg, #rdNote, .help-body li, .bd-list .upd-msg { white-space: pre-line; word-break: keep-all; overflow-wrap: break-word; }
   .help-body ul { margin: 0; padding-left: 1.1rem; font-size: var(--s); line-height: 1.5; }
   .help-body li { margin: 0.4rem 0; overflow-wrap: anywhere; }
   .help-body li b { color: var(--accent-fg); }
@@ -499,9 +501,17 @@
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
-const APP_VERSION = 'v43'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
+const APP_VERSION = 'v44'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
+// '…니다.' 뒤에서 줄을 바꾼다(화면에는 white-space: pre-line으로 표시).
+const brk = t => String(t).replace(/니다\.[ \t]+/g, '니다.\n');
+function autoBreakIn(root) {
+  const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  const nodes = [];
+  while (w.nextNode()) nodes.push(w.currentNode);
+  nodes.forEach(n => { const t = brk(n.nodeValue); if (t !== n.nodeValue) n.nodeValue = t; });
+}
 
 /* ---------- IndexedDB ---------- */
 const DB_NAME = 'gift-ledger', STORE = 'entries';
@@ -605,7 +615,7 @@ function renderPresets() {
   });
   if (typeof renderAmount === 'function') renderAmount();
 }
-function pMsg(t, err) { const m = $('pMsg'); m.textContent = t; m.className = 'upd-msg' + (err ? ' err' : ''); }
+function pMsg(t, err) { const m = $('pMsg'); m.textContent = brk(t); m.className = 'upd-msg' + (err ? ' err' : ''); }
 $('pAdd').addEventListener('click', () => {
   const f = parseFloat($('pNew').value);
   const n = Math.round(f * 10000);
@@ -1145,7 +1155,7 @@ const filePrefix = () => safeName(getEvent().name) || '축의금';
 
 const BACKUP_FORMAT = 1, MAX_BACKUP_BYTES = 5 * 1024 * 1024;
 const stamp = () => { const d = new Date(), p = n => String(n).padStart(2, '0'); return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}_${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`; };
-function bMsg(t, cls) { const m = $('bMsg'); m.textContent = t; m.className = 'upd-msg' + (cls ? ' ' + cls : ''); }
+function bMsg(t, cls) { const m = $('bMsg'); m.textContent = brk(t); m.className = 'upd-msg' + (cls ? ' ' + cls : ''); }
 const hwReset = n => { try { localStorage.setItem('hw', String(n)); } catch {} };
 function readFs() { const f = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--fs')); return f > 0 ? f : 1; }
 function makeBackup(kind) {
@@ -1236,7 +1246,7 @@ function confirmRestore(data) {
     const a = tr.insertCell(); a.className = 'bk'; a.textContent = r[1];
     tr.insertCell().textContent = r[2];
   });
-  $('rdNote').textContent = entries.size ? '복원하면 현재 장부는 이 백업으로 교체됩니다. 복원 직전에 현재 장부가 자동으로 백업 파일로 저장됩니다.' : '현재 장부가 비어 있어 바로 복원됩니다.';
+  $('rdNote').textContent = brk(entries.size ? '복원하면 현재 장부는 이 백업으로 교체됩니다. 복원 직전에 현재 장부가 자동으로 백업 파일로 저장됩니다.' : '현재 장부가 비어 있어 바로 복원됩니다.');
   return new Promise(res => {
     const done = v => { $('rdlg').close(); $('rdOk').onclick = $('rdCancel').onclick = null; res(v); };
     $('rdOk').onclick = () => done(true);
@@ -1333,7 +1343,7 @@ $('bReset').addEventListener('click', async () => {
 
 /* ---------- 설정: 업데이트 확인 ---------- */
 $('verText').textContent = '현재 버전 ' + APP_VERSION;
-function updMsg(t, cls) { const m = $('updMsg'); m.textContent = t; m.className = 'upd-msg' + (cls ? ' ' + cls : ''); }
+function updMsg(t, cls) { const m = $('updMsg'); m.textContent = brk(t); m.className = 'upd-msg' + (cls ? ' ' + cls : ''); }
 function swVersion(sw) {
   return new Promise(res => {
     const ch = new MessageChannel();
@@ -1402,6 +1412,8 @@ $('btnUpd').addEventListener('click', async () => {
 })();
 
 /* ---------- 시작 ---------- */
+autoBreakIn($('helpBody'));
+document.querySelectorAll('.upd-msg').forEach(autoBreakIn);
 (async function init() {
   try {
     (await dbAll()).forEach(e => entries.set(e.no, e));
