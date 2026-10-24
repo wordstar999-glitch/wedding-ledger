@@ -460,7 +460,7 @@
         <li><b>금액 버튼</b>을 누르면 바로 저장됩니다.</li>
         <li><b>번호</b>는 저장할 때마다 자동으로 올라갑니다. 바꾸려면 번호 칸을 누르세요.</li>
         <li><b>없는 금액</b>은 '직접 입력'에 만원 단위로 쓰세요. 예: 7 → 7만원</li>
-        <li><b>잘못 눌렀다면</b> 저장 직후 3초 안에 '취소'를 누르세요.</li>
+        <li><b>잘못 눌렀다면</b> 정산 탭에서 번호를 찾아 수정합니다.</li>
         <li><b>이름과 수정</b>은 정산 탭에서 합니다.</li>
       </ul></div>
     </details>
@@ -526,7 +526,7 @@
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
-const APP_VERSION = 'v75'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
+const APP_VERSION = 'v76'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
 // '…니다.' 뒤에서 줄을 바꾼다(화면에는 white-space: pre-line으로 표시).
