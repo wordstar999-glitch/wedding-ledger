@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#c2410c">
+<link rel="manifest" href="./manifest.json">
+<link rel="icon" href="./icon-192.png">
+<title>축의금 장부</title>
+<style>
+  :root {
+    --bg: #fff7f5; --surface: #ffffff; --border: #f1d5cc; --text: #1f1411; --text2: #7a5f57;
+    --accent: #c2410c; --accent-bg: #ffedd5; --danger: #b91c1c; --ok: #15803d;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1c1412; --surface: #2a1d19; --border: #4a332c; --text: #fbeee9; --text2: #c2a79e;
+      --accent: #fb923c; --accent-bg: #4a2a17; --danger: #f87171; --ok: #4ade80;
+    }
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: var(--bg); color: var(--text); overscroll-behavior: none;
+    font-family: -apple-system, 'Noto Sans KR', 'Malgun Gothic', sans-serif; font-size: 18px;
+    display: flex; flex-direction: column;
+    padding-top: env(safe-area-inset-top);
+  }
+  button, input, textarea { font: inherit; color: inherit; }
+  button { touch-action: manipulation; cursor: pointer; }
+  main { flex: 1; min-height: 0; padding: 12px 16px; display: flex; flex-direction: column; gap: 12px; }
+  main[hidden] { display: none; }
+
+  /* 하단 탭 */
+  nav { display: flex; border-top: 1px solid var(--border); background: var(--surface); padding-bottom: env(safe-area-inset-bottom); }
+  nav button { flex: 1; height: 60px; border: 0; background: none; font-size: 20px; font-weight: 700; color: var(--text2); }
+  nav button.on { color: var(--accent); box-shadow: inset 0 3px 0 var(--accent); }
+
+  /* 입력 화면 */
+  .no-row { display: flex; align-items: center; gap: 12px; }
+  .no-row label { font-size: 22px; font-weight: 700; color: var(--text2); }
+  #no {
+    flex: 1; min-width: 0; height: 72px; font-size: 44px; font-weight: 800; text-align: center;
+    border: 2px solid var(--border); border-radius: 14px; background: var(--surface);
+  }
+  #no.dup { border-color: var(--danger); color: var(--danger); }
+  .amt-disp {
+    height: 76px; border-radius: 14px; background: var(--accent-bg); color: var(--accent);
+    display: flex; align-items: center; justify-content: center; font-size: 38px; font-weight: 800;
+  }
+  .amt-disp.empty { font-size: 22px; font-weight: 500; color: var(--text2); }
+  .presets { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+  .presets button {
+    height: 78px; border-radius: 14px; border: 2px solid var(--border); background: var(--surface);
+    font-size: 28px; font-weight: 800;
+  }
+  .presets button.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .presets button:active { transform: scale(.97); }
+  .manual { display: flex; align-items: center; gap: 10px; }
+  #manual {
+    flex: 1; min-width: 0; height: 64px; font-size: 28px; font-weight: 700; text-align: right; padding: 0 14px;
+    border: 2px solid var(--border); border-radius: 14px; background: var(--surface);
+  }
+  #manual:focus, #no:focus { outline: none; border-color: var(--accent); }
+  .manual span { font-size: 22px; font-weight: 700; color: var(--text2); }
+  .grow { flex: 1; min-height: 0; }
+  #save {
+    height: 92px; border: 0; border-radius: 18px; background: var(--accent); color: #fff;
+    font-size: 32px; font-weight: 800;
+  }
+  #save:active { filter: brightness(.9); }
+
+  /* 정산 화면 */
+  .totals { display: grid; grid-template-columns: 1fr 2fr; gap: 10px; }
+  .totals div { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 10px 14px; }
+  .totals small { display: block; color: var(--text2); font-size: 14px; }
+  .totals b { font-size: 28px; }
+  .tools { display: flex; gap: 10px; }
+  .tools button {
+    flex: 1; height: 56px; border-radius: 12px; border: 2px solid var(--accent); background: var(--surface);
+    color: var(--accent); font-size: 18px; font-weight: 800;
+  }
+  .tools button.fill { background: var(--accent); color: #fff; }
+  #q {
+    height: 52px; padding: 0 14px; font-size: 18px; border: 2px solid var(--border); border-radius: 12px; background: var(--surface);
+  }
+  #q:focus { outline: none; border-color: var(--accent); }
+  #list { flex: 1; min-height: 0; overflow-y: auto; margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; }
+  #list li {
+    display: grid; grid-template-columns: 64px 1fr auto; align-items: center; gap: 10px;
+    min-height: 64px; padding: 8px 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+  }
+  #list .n { font-size: 22px; font-weight: 800; color: var(--accent); }
+  #list .nm { font-size: 18px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #list .nm.none { color: var(--text2); }
+  #list .nm small { display: block; color: var(--text2); font-size: 13px; }
+  #list .a { font-size: 20px; font-weight: 800; }
+  .empty-msg { text-align: center; color: var(--text2); padding: 30px 0; }
+
+  /* 수정 다이얼로그 */
+  dialog { width: min(92vw, 420px); border: 0; border-radius: 18px; padding: 18px; background: var(--surface); color: var(--text); }
+  dialog::backdrop { background: rgba(0,0,0,.5); }
+  dialog label { display: block; margin: 10px 0 4px; font-size: 14px; color: var(--text2); }
+  dialog input {
+    width: 100%; height: 54px; padding: 0 12px; font-size: 20px; background: var(--bg);
+    border: 2px solid var(--border); border-radius: 10px;
+  }
+  dialog input:focus { outline: none; border-color: var(--accent); }
+  dialog .btns { display: flex; gap: 8px; margin-top: 16px; }
+  dialog .btns button { flex: 1; height: 56px; border-radius: 12px; border: 2px solid var(--border); background: var(--surface); font-weight: 800; }
+  dialog .btns .del { border-color: var(--danger); color: var(--danger); }
+  dialog .btns .ok { background: var(--accent); border-color: var(--accent); color: #fff; }
+  #dlgErr { color: var(--danger); min-height: 22px; font-size: 15px; margin-top: 8px; }
+
+  #toast {
+    position: fixed; left: 50%; bottom: 100px; transform: translateX(-50%); max-width: 90vw;
+    padding: 12px 20px; border-radius: 12px; background: #1f2937; color: #fff; font-size: 18px; font-weight: 700;
+    opacity: 0; pointer-events: none; transition: opacity .15s; text-align: center;
+  }
+  #toast.show { opacity: 1; }
+  #toast.err { background: var(--danger); }
+</style>
+</head>
+<body>
+
+<main id="vInput">
+  <div class="no-row">
+    <label for="no">No.</label>
+    <input id="no" type="number" inputmode="numeric" min="1" step="1" value="1" aria-label="일련번호">
+  </div>
+  <div class="amt-disp empty" id="amtDisp">금액을 선택하세요</div>
+  <div class="presets" id="presets">
+    <button data-v="30000">3만</button>
+    <button data-v="50000">5만</button>
+    <button data-v="100000">10만</button>
+    <button data-v="200000">20만</button>
+    <button data-v="300000">30만</button>
+    <button data-v="500000">50만</button>
+  </div>
+  <div class="manual">
+    <input id="manual" type="text" inputmode="decimal" placeholder="직접 입력 (예: 7)" aria-label="직접 입력 금액(만원)">
+    <span>만원</span>
+  </div>
+  <div class="grow"></div>
+  <button id="save" type="button">저장 및 다음</button>
+</main>
+
+<main id="vSum" hidden>
+  <div class="totals">
+    <div><small>총 건수</small><b id="tCount">0</b></div>
+    <div><small>총 금액</small><b id="tSum">0</b></div>
+  </div>
+  <div class="tools">
+    <button id="btnXlsx" type="button" class="fill">엑셀 저장</button>
+    <button id="btnShare" type="button">공유</button>
+  </div>
+  <input id="q" type="search" placeholder="번호·이름 검색" aria-label="검색">
+  <ul id="list"></ul>
+</main>
+
+<nav>
+  <button id="tabInput" class="on" type="button">입력</button>
+  <button id="tabSum" type="button">정산</button>
+</nav>
+
+<dialog id="dlg">
+  <form method="dialog" id="dlgForm" novalidate>
+    <label for="eNo">번호</label>
+    <input id="eNo" type="number" inputmode="numeric" min="1" step="1">
+    <label for="eName">이름</label>
+    <input id="eName" type="text" maxlength="40" autocomplete="off">
+    <label for="eAmt">금액(원)</label>
+    <input id="eAmt" type="number" inputmode="numeric" min="1" step="1">
+    <label for="eMemo">비고</label>
+    <input id="eMemo" type="text" maxlength="100" autocomplete="off">
+    <div id="dlgErr" role="alert"></div>
+    <div class="btns">
+      <button type="button" class="del" id="eDel">삭제</button>
+      <button type="button" id="eCancel">취소</button>
+      <button type="button" class="ok" id="eOk">저장</button>
+    </div>
+  </form>
+</dialog>
+
+<div id="toast" role="status"></div>
+
+<script src="./xlsx.js"></script>
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
+const fmt = n => n.toLocaleString('ko-KR');
+
+/* ---------- IndexedDB ---------- */
+const DB_NAME = 'gift-ledger', STORE = 'entries';
+let dbp;
+const openDB = () => dbp || (dbp = new Promise((res, rej) => {
+  const r = indexedDB.open(DB_NAME, 1);
+  r.onupgradeneeded = () => r.result.createObjectStore(STORE, { keyPath: 'no' });
+  r.onsuccess = () => res(r.result);
+  r.onerror = () => rej(r.error);
+}));
+// ops: [['put', entry] | ['del', no]] 를 하나의 트랜잭션으로 적용한다.
+async function dbApply(ops) {
+  const db = await openDB();
+  return new Promise((res, rej) => {
+    const tx = db.transaction(STORE, 'readwrite');
+    const os = tx.objectStore(STORE);
+    ops.forEach(([k, v]) => k === 'put' ? os.put(v) : os.delete(v));
+    tx.oncomplete = () => res();
+    tx.onerror = tx.onabort = () => rej(tx.error);
+  });
+}
+async function dbAll() {
+  const db = await openDB();
+  return new Promise((res, rej) => {
+    const r = db.transaction(STORE).objectStore(STORE).getAll();
+    r.onsuccess = () => res(r.result);
+    r.onerror = () => rej(r.error);
+  });
+}
+
+/* ---------- 상태 ---------- */
+const entries = new Map();
+let amount = 0;
+
+const sorted = () => [...entries.values()].sort((a, b) => a.no - b.no);
+const nextFree = from => { let n = Math.max(1, from); while (entries.has(n)) n++; return n; };
+
+/* ---------- 알림 ---------- */
+let toastTimer;
+function toast(msg, err) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.className = 'show' + (err ? ' err' : '');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { t.className = ''; }, err ? 2200 : 1100);
+  if (navigator.vibrate) navigator.vibrate(err ? [60, 40, 60] : 25);
+}
+
+/* ---------- 입력 화면 ---------- */
+function renderAmount() {
+  const d = $('amtDisp');
+  d.textContent = amount ? fmt(amount) + '원' : '금액을 선택하세요';
+  d.classList.toggle('empty', !amount);
+  document.querySelectorAll('#presets button').forEach(b =>
+    b.classList.toggle('on', Number(b.dataset.v) === amount && !$('manual').value));
+}
+function checkDup() {
+  const n = parseInt($('no').value, 10);
+  $('no').classList.toggle('dup', entries.has(n));
+}
+$('presets').addEventListener('click', e => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  amount = Number(b.dataset.v);
+  $('manual').value = '';
+  renderAmount();
+});
+$('manual').addEventListener('input', () => {
+  const v = $('manual').value.replace(/[^0-9.]/g, '');
+  if (v !== $('manual').value) $('manual').value = v;
+  const f = parseFloat(v);
+  amount = isFinite(f) ? Math.round(f * 10000) : 0;
+  renderAmount();
+});
+$('no').addEventListener('input', checkDup);
+
+let saving = false;
+async function save() {
+  if (saving) return;
+  const no = parseInt($('no').value, 10);
+  if (!(no >= 1)) return toast('번호를 확인하세요', true);
+  if (entries.has(no)) return toast(`No.${no}은(는) 이미 저장됨`, true);
+  if (!(amount > 0)) return toast('금액을 선택하세요', true);
+  saving = true;
+  const entry = { no, name: '', amount, memo: '', ts: Date.now() };
+  try {
+    await dbApply([['put', entry]]);
+  } catch (err) {
+    saving = false;
+    return toast('저장 실패: 다시 시도하세요', true);
+  }
+  saving = false;
+  entries.set(no, entry);
+  toast(`No.${no}  ${fmt(amount)}원 저장`);
+  amount = 0;
+  $('manual').value = '';
+  $('no').value = nextFree(no + 1);
+  checkDup();
+  renderAmount();
+}
+$('save').addEventListener('click', save);
+
+/* ---------- 정산 화면 ---------- */
+function renderSum() {
+  const all = sorted();
+  $('tCount').textContent = fmt(all.length) + '건';
+  $('tSum').textContent = fmt(all.reduce((s, e) => s + e.amount, 0)) + '원';
+  const q = $('q').value.trim().toLowerCase();
+  const rows = q ? all.filter(e => String(e.no) === q || (e.name || '').toLowerCase().includes(q) || (e.memo || '').toLowerCase().includes(q)) : all;
+  const ul = $('list');
+  ul.textContent = '';
+  if (!rows.length) {
+    const li = document.createElement('div');
+    li.className = 'empty-msg';
+    li.textContent = all.length ? '검색 결과가 없습니다' : '저장된 내역이 없습니다';
+    ul.appendChild(li);
+    return;
+  }
+  const frag = document.createDocumentFragment();
+  rows.forEach(e => {
+    const li = document.createElement('li');
+    li.dataset.no = e.no;
+    const n = document.createElement('span'); n.className = 'n'; n.textContent = e.no;
+    const nm = document.createElement('span'); nm.className = 'nm' + (e.name ? '' : ' none');
+    nm.textContent = e.name || '(이름 없음)';
+    if (e.memo) { const s = document.createElement('small'); s.textContent = e.memo; nm.appendChild(s); }
+    const a = document.createElement('span'); a.className = 'a'; a.textContent = fmt(e.amount);
+    li.append(n, nm, a);
+    frag.appendChild(li);
+  });
+  ul.appendChild(frag);
+}
+$('q').addEventListener('input', renderSum);
+$('list').addEventListener('click', e => {
+  const li = e.target.closest('li');
+  if (li) openEdit(Number(li.dataset.no));
+});
+
+/* ---------- 수정 / 삭제 ---------- */
+let editing = null;
+function openEdit(no) {
+  const e = entries.get(no);
+  if (!e) return;
+  editing = no;
+  $('eNo').value = e.no; $('eName').value = e.name || ''; $('eAmt').value = e.amount; $('eMemo').value = e.memo || '';
+  $('dlgErr').textContent = '';
+  $('dlg').showModal();
+}
+$('eCancel').addEventListener('click', () => $('dlg').close());
+$('eDel').addEventListener('click', async () => {
+  if (editing == null || !confirm(`No.${editing} 내역을 삭제할까요?`)) return;
+  try { await dbApply([['del', editing]]); } catch { return ($('dlgErr').textContent = '삭제 실패'); }
+  entries.delete(editing);
+  $('dlg').close();
+  afterChange();
+  toast('삭제됨');
+});
+$('eOk').addEventListener('click', async () => {
+  const old = entries.get(editing);
+  const no = parseInt($('eNo').value, 10), amt = parseInt($('eAmt').value, 10);
+  const err = m => ($('dlgErr').textContent = m);
+  if (!old) return;
+  if (!(no >= 1)) return err('번호를 확인하세요');
+  if (!(amt > 0)) return err('금액을 확인하세요');
+  if (no !== editing && entries.has(no)) return err(`No.${no}은(는) 이미 사용 중입니다`);
+  const next = { ...old, no, amount: amt, name: $('eName').value.trim(), memo: $('eMemo').value.trim() };
+  const ops = no !== editing ? [['del', editing], ['put', next]] : [['put', next]];
+  try { await dbApply(ops); } catch { return err('저장 실패'); }
+  entries.delete(editing);
+  entries.set(no, next);
+  $('dlg').close();
+  afterChange();
+});
+function afterChange() {
+  renderSum();
+  $('no').value = nextFree(parseInt($('no').value, 10) || 1);
+  checkDup();
+}
+
+/* ---------- 엑셀 내보내기 / 공유 ---------- */
+function makeFile() {
+  const d = new Date(), p = n => String(n).padStart(2, '0');
+  const name = `축의금_${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}.xlsx`;
+  const blob = buildXlsx(sorted());
+  return new File([blob], name, { type: blob.type });
+}
+function download(file) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(file);
+  a.download = file.name;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+}
+$('btnXlsx').addEventListener('click', () => {
+  if (!entries.size) return toast('내보낼 내역이 없습니다', true);
+  download(makeFile());
+  toast('엑셀 파일 저장');
+});
+$('btnShare').addEventListener('click', async () => {
+  if (!entries.size) return toast('내보낼 내역이 없습니다', true);
+  const file = makeFile();
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    try { await navigator.share({ files: [file], title: '축의금 장부' }); }
+    catch (e) { if (e.name !== 'AbortError') toast('공유 실패', true); }
+  } else {
+    download(file);
+    toast('공유 미지원: 파일로 저장됨', true);
+  }
+});
+
+/* ---------- 탭 ---------- */
+function show(tab) {
+  $('vInput').hidden = tab !== 'input';
+  $('vSum').hidden = tab !== 'sum';
+  $('tabInput').classList.toggle('on', tab === 'input');
+  $('tabSum').classList.toggle('on', tab === 'sum');
+  if (tab === 'sum') renderSum();
+}
+$('tabInput').addEventListener('click', () => show('input'));
+$('tabSum').addEventListener('click', () => show('sum'));
+
+/* ---------- 시작 ---------- */
+(async function init() {
+  try {
+    (await dbAll()).forEach(e => entries.set(e.no, e));
+  } catch {
+    toast('저장소를 열 수 없습니다', true);
+  }
+  $('no').value = Math.max(0, ...entries.keys()) + 1;
+  renderAmount();
+  if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(() => {});
+})();
+</script>
+</body>
+</html>
