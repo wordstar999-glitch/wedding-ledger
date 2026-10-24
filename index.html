@@ -42,6 +42,32 @@
   main > * { flex-shrink: 0; }
   #list { flex-shrink: 1 !important; }
 
+    /* 색상 테마(설정 > 화면 색상). 기본(하늘 파랑)은 :root 값 */
+  :root[data-theme="teal"] { --bg: #f1faf9; --border: #cde6e3; --text: #10201f; --text2: #4f6b68; --accent: #0f766e; --accent-fg: #0f766e; --accent-bg: #d8f1ee; --gold: #2dd4bf; }
+  :root[data-theme="ocean"] { --bg: #eff9fc; --border: #c8e3ea; --text: #0f1f26; --text2: #4a6872; --accent: #0e7490; --accent-fg: #0e7490; --accent-bg: #d5eff6; --gold: #22d3ee; }
+  :root[data-theme="forest"] { --bg: #f2faf4; --border: #cfe5d6; --text: #10200f; --text2: #4d6a55; --accent: #2f7d4f; --accent-fg: #2f7d4f; --accent-bg: #dcf1e3; --gold: #6ee7a0; }
+  :root[data-theme="lavender"] { --bg: #f6f3fd; --border: #ddd5f0; --text: #1a1228; --text2: #62567a; --accent: #6d4cc2; --accent-fg: #6d4cc2; --accent-bg: #e6dffa; --gold: #a78bfa; }
+  :root[data-theme="rose"] { --bg: #fdf3f6; --border: #f0d3dd; --text: #28101a; --text2: #7a5463; --accent: #c2335f; --accent-fg: #c2335f; --accent-bg: #fbe1ea; --gold: #f9a8c0; }
+  :root[data-theme="orange"] { --bg: #fff7f0; --border: #f2dcc9; --text: #28160a; --text2: #7a5a45; --accent: #c2540a; --accent-fg: #c2540a; --accent-bg: #ffe6d0; --gold: #fb923c; }
+  :root[data-theme="slate"] { --bg: #f3f5f7; --border: #d3dbe2; --text: #12181e; --text2: #55636f; --accent: #3f5468; --accent-fg: #3f5468; --accent-bg: #e1e7ed; --gold: #94a3b8; }
+  @media (prefers-color-scheme: dark) {
+    :root[data-theme="teal"] { --bg: #0e1a19; --surface: #152624; --border: #24413e; --text: #e6f4f2; --text2: #9dbab6; --accent: #1b8a80; --accent-fg: #7fd8cf; --accent-bg: #17403c; --gold: #2dd4bf; }
+    :root[data-theme="ocean"] { --bg: #0d1a20; --surface: #14262f; --border: #234250; --text: #e5f2f6; --text2: #9bb9c4; --accent: #1a86a8; --accent-fg: #7cd0e8; --accent-bg: #164256; --gold: #22d3ee; }
+    :root[data-theme="forest"] { --bg: #0f1a12; --surface: #17271b; --border: #28432f; --text: #e8f4eb; --text2: #9fbaa6; --accent: #3a9462; --accent-fg: #86d9a8; --accent-bg: #1a4128; --gold: #6ee7a0; }
+    :root[data-theme="lavender"] { --bg: #151222; --surface: #1e1a31; --border: #36304f; --text: #eeeaf8; --text2: #b0a8c9; --accent: #7f5fd0; --accent-fg: #c3b0f5; --accent-bg: #2f2650; --gold: #a78bfa; }
+    :root[data-theme="rose"] { --bg: #1f1217; --surface: #2b1a21; --border: #4a2d38; --text: #fbeaee; --text2: #cba8b3; --accent: #c8456f; --accent-fg: #f5a8c0; --accent-bg: #4a2030; --gold: #f9a8c0; }
+    :root[data-theme="orange"] { --bg: #1f150d; --surface: #2b1f14; --border: #4a3524; --text: #fbeee2; --text2: #cdb094; --accent: #cc6a1f; --accent-fg: #f7b27a; --accent-bg: #4a2e17; --gold: #fb923c; }
+    :root[data-theme="slate"] { --bg: #12171c; --surface: #1b2229; --border: #303c47; --text: #e8edf2; --text2: #a3b0bc; --accent: #55708a; --accent-fg: #aac1d6; --accent-bg: #273543; --gold: #94a3b8; }
+  }
+  .swatches { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+  .swatches button { display: flex; align-items: center; gap: 0.6rem; min-height: 3.25rem; padding: 0.25rem 0.6rem; border: 2px solid var(--border); border-radius: 0.75rem; background: var(--surface); color: var(--text); font-size: var(--s); font-weight: 800; text-align: left; }
+  .swatches button i { flex: 0 0 auto; width: 1.75rem; height: 1.75rem; border-radius: 50%; border: 2px solid rgba(0,0,0,.12); }
+  .swatches button.on { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); }
+  #undoBar { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(4.5rem + env(safe-area-inset-bottom)); width: min(92vw, 420px); z-index: 20; display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.5rem 0.5rem 0.9rem; border-radius: 0.875rem; background: #0f2740; color: #fff; font-size: var(--t); font-weight: 700; box-shadow: 0 4px 16px rgba(0,0,0,.25); }
+  #undoBar[hidden] { display: none; }
+  #undoBar span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+  #undoBtn { flex: 0 0 auto; min-height: 3rem; padding: 0 1.1rem; border: 2px solid #fff; border-radius: 0.625rem; background: transparent; color: #fff; font-size: var(--t); font-weight: 800; }
+
   /* 앱 설치 안내(브라우저에서 열었고 설치 가능할 때만 표시) */
   #installBar { flex: 0 0 auto; display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.75rem; background: var(--accent-bg); border-bottom: 1px solid var(--border); font-size: var(--s); color: var(--text); }
   #installBar[hidden] { display: none; }
@@ -232,6 +258,7 @@
   .preview b { color: var(--text); font-size: var(--t); }
 </style>
 <script>try{var f=parseFloat(localStorage.getItem("fs"));if(f){f=Math.min(1.15,Math.max(0.7,f));document.documentElement.style.setProperty("--fs",f)}}catch(e){}</script>
+<script>try{var __t=localStorage.getItem("theme");if(__t)document.documentElement.setAttribute("data-theme",__t)}catch(e){}</script>
 <script>setTimeout(function(){document.documentElement.classList.add("ready")},1500)</script>
 </head>
 <body>
@@ -251,7 +278,7 @@
     <div class="amt-disp empty" id="amtDisp">금액을 선택하세요</div>
     <div class="presets" id="presets"></div>
     <div class="manual">
-      <input id="manual" type="text" inputmode="decimal" placeholder="직접 입력 (예: 7)" aria-label="직접 입력 금액(만원)">
+      <input id="manual" type="text" inputmode="decimal" placeholder="직접 입력 (예: 7)" aria-label="직접 입력 금액(만원)" enterkeyhint="done">
       <span>만원</span>
     </div>
     <button id="save" type="button">저장 및 다음</button>
@@ -295,11 +322,23 @@
       <div class="preview">미리보기<br><b>No. 12 · 10만원</b></div>
     </div>
   </details>
+  <details class="sec" data-k="theme">
+    <summary>화면 색상</summary>
+    <div class="sec-body">
+      <div class="swatches" id="swatches"></div>
+      <div class="upd-msg">입력·정산·설정 화면 전체에 적용됩니다. 삭제·오류 표시는 빨간색을 유지합니다.</div>
+    </div>
+  </details>
   <details class="sec" data-k="auto">
-    <summary>이름 자동 저장</summary>
+    <summary>자동 저장</summary>
     <div class="sec-body">
       <div class="ver">
-        <span id="autoText"></span>
+        <span>금액 <b id="autoAmtText"></b></span>
+        <button id="btnAutoAmt" type="button"></button>
+      </div>
+      <div class="upd-msg">금액 버튼을 누르면 바로 저장하고, 직접 입력은 1.2초 멈추거나 완료 키를 누르면 저장합니다. 저장 직후 3초 동안 취소할 수 있습니다.</div>
+      <div class="ver">
+        <span>이름 <b id="autoText"></b></span>
         <button id="btnAuto" type="button"></button>
       </div>
       <div class="upd-msg">이름이 비어 있던 항목에 이름을 입력하고 1.2초 동안 입력이 없으면 자동으로 저장하고 다음 빈 항목을 엽니다.</div>
@@ -386,12 +425,17 @@
   </div>
 </dialog>
 
+<div id="undoBar" hidden role="status">
+  <span id="undoText"></span>
+  <button id="undoBtn" type="button">취소</button>
+</div>
+
 <div id="toast" role="status"></div>
 
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
-const APP_VERSION = 'v37'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
+const APP_VERSION = 'v38'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
 
@@ -555,6 +599,8 @@ $('presets').addEventListener('click', e => {
   amount = Number(b.dataset.v);
   $('manual').value = '';
   renderAmount();
+  // 금액 버튼은 누르면 바로 저장한다(연속 터치로 두 번 저장되는 것을 막기 위해 짧게 무시, 0.3초).
+  if (autoAmt && Date.now() - lastAuto > 300) { lastAuto = Date.now(); save(); }
 });
 $('manual').addEventListener('input', () => {
   const v = $('manual').value.replace(/[^0-9.]/g, '');
@@ -562,12 +608,42 @@ $('manual').addEventListener('input', () => {
   const f = parseFloat(v);
   amount = isFinite(f) ? Math.round(f * 10000) : 0;
   renderAmount();
+  autoSaveSoon(1200);
+});
+$('manual').addEventListener('keydown', e => {
+  if (e.key !== 'Enter') return;
+  e.preventDefault();
+  clearTimeout(manualTimer);
+  if (amount > 0) save();
 });
 $('no').addEventListener('input', checkDup);
 
 // 지금까지 사용한 가장 큰 번호를 기억해 두어, 끝 번호가 지워져도 번호가 재사용되지 않게 한다.
 const hwGet = () => { try { return parseInt(localStorage.getItem('hw'), 10) || 0; } catch { return 0; } };
 const hwSet = n => { try { if (n > hwGet()) localStorage.setItem('hw', String(n)); } catch {} };
+
+let autoAmt = true;
+try { autoAmt = localStorage.getItem('autoAmt') !== '0'; } catch {}
+let manualTimer = null, lastAuto = 0, lastUndo = null, undoTimer = null;
+function showUndo(text, fn) {
+  lastUndo = fn;
+  $('undoText').textContent = text;
+  $('undoBar').hidden = false;
+  clearTimeout(undoTimer);
+  undoTimer = setTimeout(() => { $('undoBar').hidden = true; lastUndo = null; }, 3000);
+}
+$('undoBtn').addEventListener('click', async () => {
+  const fn = lastUndo;
+  clearTimeout(undoTimer);
+  $('undoBar').hidden = true;
+  lastUndo = null;
+  if (fn) await fn();
+});
+function autoSaveSoon(ms) {
+  clearTimeout(manualTimer);
+  if (!autoAmt || !(amount > 0)) return;
+  manualTimer = setTimeout(() => save(), ms);
+}
 
 let saving = false;
 async function save() {
@@ -580,6 +656,8 @@ async function save() {
   const top = Math.max(hwGet(), ...entries.keys(), 0);
   if (no > top + 1 && !confirm(`No.${no}(으)로 건너뛰면 ${top + 1}~${no - 1}번이 비어 있는 번호(삭제됨)로 채워집니다. 계속할까요?`)) return;
   saving = true;
+  clearTimeout(manualTimer);
+  const prev = ex ? { ...ex } : null;
   const entry = { no, name: '', amount, memo: '', ts: Date.now() };
   try {
     await dbApply([['put', entry]]);
@@ -590,7 +668,15 @@ async function save() {
   saving = false;
   entries.set(no, entry);
   hwSet(no);
-  toast(`No.${no}  ${fmtMan(amount)}만원 저장`);
+  showUndo(`No.${no}  ${fmtMan(amount)}만원 저장`, async () => {
+    // 일련번호는 삭제하지 않는다: 저장 이전 상태(없던 번호는 '삭제됨')로 되돌리고, 같은 번호로 다시 입력할 수 있게 한다.
+    const v = prev || { no, name: '', amount: 0, memo: '', ts: Date.now(), void: true };
+    try { await dbApply([['put', v]]); } catch { return toast('취소 실패', true); }
+    entries.set(no, v);
+    $('no').value = no;
+    checkDup();
+    toast(`No.${no} 저장을 취소했습니다`);
+  });
   amount = 0;
   $('manual').value = '';
   $('no').value = nextFree(no + 1);
@@ -780,6 +866,15 @@ $('eName').addEventListener('input', () => {
 });
 ['eNo', 'eAmt', 'eMemo'].forEach(id => $(id).addEventListener('input', clearAuto));
 $('dlg').addEventListener('close', clearAuto);
+function renderAutoAmt() {
+  $('autoAmtText').textContent = autoAmt ? '켜짐' : '꺼짐';
+  $('btnAutoAmt').textContent = autoAmt ? '끄기' : '켜기';
+}
+$('btnAutoAmt').addEventListener('click', () => {
+  autoAmt = !autoAmt;
+  try { localStorage.setItem('autoAmt', autoAmt ? '1' : '0'); } catch {}
+  renderAutoAmt();
+});
 function renderAuto() {
   $('autoText').textContent = autoOn ? '켜짐' : '꺼짐';
   $('btnAuto').textContent = autoOn ? '끄기' : '켜기';
@@ -850,6 +945,41 @@ $('tabSet').addEventListener('click', () => show('set'));
     });
   });
 })();
+
+/* ---------- 설정: 화면 색상 ---------- */
+const THEMES = [
+  ['sky', '하늘 파랑', '#1d6fb8'], ['teal', '청록', '#0f766e'], ['ocean', '바다 청색', '#0e7490'], ['forest', '숲 초록', '#2f7d4f'],
+  ['lavender', '라벤더 보라', '#6d4cc2'], ['rose', '로즈 핑크', '#c2335f'], ['orange', '따뜻한 오렌지', '#c2540a'], ['slate', '슬레이트 회색', '#3f5468'],
+];
+const themeOk = k => THEMES.some(t => t[0] === k);
+function currentTheme() { const k = document.documentElement.getAttribute('data-theme'); return themeOk(k) ? k : 'sky'; }
+function applyTheme(k, save) {
+  if (!themeOk(k)) k = 'sky';
+  document.documentElement.setAttribute('data-theme', k);
+  if (save) { try { localStorage.setItem('theme', k); } catch {} }
+  const color = THEMES.find(t => t[0] === k)[2];
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.setAttribute('content', color);
+  renderTheme();
+}
+function renderTheme() {
+  const box = $('swatches');
+  if (!box) return;
+  const cur = currentTheme();
+  box.textContent = '';
+  THEMES.forEach(([k, name, color]) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = k === cur ? 'on' : '';
+    b.setAttribute('aria-pressed', k === cur);
+    const i = document.createElement('i');
+    i.style.background = color;
+    b.append(i, name);
+    b.onclick = () => applyTheme(k, true);
+    box.appendChild(b);
+  });
+}
+applyTheme(currentTheme(), false);
 
 /* ---------- 설정: 글자 크기 ---------- */
 function markSize() {
@@ -942,7 +1072,7 @@ function makeBackup(kind) {
     summary: { count: sm.count, voided: sm.voided, totalWon: sm.total, maxNo: sm.maxNo, firstAt: sm.first, lastAt: sm.last },
     hw: Math.max(hwGet(), ...entries.keys(), 0),
     entries: sorted().map(e => ({ no: e.no, name: e.name || '', amount: e.amount || 0, memo: e.memo || '', ts: e.ts || 0, void: !!e.void })),
-    settings: { presets: presets.slice(), fs: readFs(), auto: autoOn },
+    settings: { presets: presets.slice(), fs: readFs(), auto: autoOn, autoAmt, theme: currentTheme() },
   };
 }
 const KIND_LABEL = { manual: '백업', 'before-restore': '복원전자동백업', 'before-reset': '초기화전자동백업' };
@@ -983,10 +1113,10 @@ function parseBackup(text) {
   const evo = o.event && typeof o.event === 'object' ? o.event : {};
   const saved = typeof o.savedAt === 'string' && !isNaN(new Date(o.savedAt)) ? o.savedAt : '';
   const meta = { eventName: String(evo.name || '').trim().slice(0, 30), eventDate: validDate(evo.date) ? evo.date : '', savedAt: saved, kind: KIND_TEXT[o.kind] ? o.kind : '', hasEvent: !!o.event };
-  return { meta, list, hw, presets: presetsOk ? pr : null, fs: fsOk ? st.fs : null, auto: typeof st.auto === 'boolean' ? st.auto : null };
+  return { meta, list, hw, presets: presetsOk ? pr : null, fs: fsOk ? st.fs : null, auto: typeof st.auto === 'boolean' ? st.auto : null, autoAmt: typeof st.autoAmt === 'boolean' ? st.autoAmt : null, theme: themeOk(st.theme) ? st.theme : null };
 }
 function refreshAll() {
-  renderPresets(); renderAuto(); markSize(); renderSum();
+  renderPresets(); renderAuto(); renderAutoAmt(); renderTheme(); markSize(); renderSum();
   amount = 0; $('manual').value = ''; $('q').value = ''; noNameOnly = false;
   $('no').value = Math.max(0, ...entries.keys()) + 1;
   checkDup(); renderAmount(); renderSum();
@@ -1044,6 +1174,8 @@ async function restoreFrom(data) {
   if (data.presets) { presets = data.presets.slice(); savePresets(); }
   if (data.fs !== null) { document.documentElement.style.setProperty('--fs', data.fs); try { localStorage.setItem('fs', String(data.fs)); } catch {} }
   if (data.auto !== null) { autoOn = data.auto; try { localStorage.setItem('auto', autoOn ? '1' : '0'); } catch {} }
+  if (data.autoAmt !== null) { autoAmt = data.autoAmt; try { localStorage.setItem('autoAmt', autoAmt ? '1' : '0'); } catch {} }
+  if (data.theme !== null) applyTheme(data.theme, true);
   setEvent({ name: data.meta.eventName, date: data.meta.eventDate });
   await fillGaps();
   refreshAll();
@@ -1202,6 +1334,8 @@ $('btnUpd').addEventListener('click', async () => {
   $('no').value = topNo + 1;
   renderPresets();
   renderAuto();
+  renderAutoAmt();
+  renderTheme();
   renderEvent();
   markSize();
   try {
