@@ -115,7 +115,7 @@
   dialog .btns .del { border-color: var(--danger); color: var(--danger); }
   dialog { width: min(96vw, 460px) !important; padding: 14px !important; }
   .erow { display: grid; grid-template-columns: minmax(0, .85fr) minmax(0, 1.8fr) minmax(0, 1.1fr) minmax(0, .95fr); gap: 6px; }
-  dialog .erow label { margin: 0; font-size: .8125rem; text-align: center; }
+  dialog .erow label { display: flex; flex-direction: column; align-items: stretch; margin: 0; font-size: .8125rem; text-align: center; white-space: nowrap; line-height: 1.2; min-width: 0; }
   dialog .erow input { width: 100%; min-width: 0; padding: 0 .2rem; font-size: 1.0625rem; text-align: center; height: 3.25rem; margin-top: 4px; }
   .erow input[type=number] { -moz-appearance: textfield; appearance: textfield; }
   .erow input::-webkit-outer-spin-button, .erow input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
@@ -257,7 +257,7 @@
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
-const APP_VERSION = 'v13'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
+const APP_VERSION = 'v14'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
 
