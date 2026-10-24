@@ -42,7 +42,8 @@
   nav button { flex: 1; height: 3.75rem; border: 0; background: none; font-size: var(--t); font-weight: 700; color: var(--text2); }
   nav button.on { color: var(--accent); box-shadow: inset 0 3px 0 var(--accent); }
 
-  /* 입력 화면 */
+  /* 입력 화면: 글자 크기가 클수록 화면을 채우고, 작을수록 전체 칸이 줄어 저장 버튼이 위로 올라온다 */
+  .fit { display: flex; flex-direction: column; gap: 0.75rem; height: calc(100% * var(--fs, 1) / 1.15); min-height: min-content; }
   .no-row { display: flex; align-items: stretch; gap: 0.75rem; flex: 1 1 0; min-height: 3rem; }
   .no-row label { display: flex; align-items: center; font-size: var(--t); font-weight: 700; color: var(--text2); }
   #no {
@@ -194,17 +195,19 @@
 <body>
 
 <main id="vInput">
-  <div class="no-row">
-    <label for="no">No.</label>
-    <input id="no" type="number" inputmode="numeric" min="1" step="1" value="1" aria-label="일련번호">
+  <div class="fit">
+    <div class="no-row">
+      <label for="no">No.</label>
+      <input id="no" type="number" inputmode="numeric" min="1" step="1" value="1" aria-label="일련번호">
+    </div>
+    <div class="amt-disp empty" id="amtDisp">금액을 선택하세요</div>
+    <div class="presets" id="presets"></div>
+    <div class="manual">
+      <input id="manual" type="text" inputmode="decimal" placeholder="직접 입력 (예: 7)" aria-label="직접 입력 금액(만원)">
+      <span>만원</span>
+    </div>
+    <button id="save" type="button">저장 및 다음</button>
   </div>
-  <div class="amt-disp empty" id="amtDisp">금액을 선택하세요</div>
-  <div class="presets" id="presets"></div>
-  <div class="manual">
-    <input id="manual" type="text" inputmode="decimal" placeholder="직접 입력 (예: 7)" aria-label="직접 입력 금액(만원)">
-    <span>만원</span>
-  </div>
-  <button id="save" type="button">저장 및 다음</button>
 </main>
 
 <main id="vSum" hidden>
@@ -311,7 +314,7 @@
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
-const APP_VERSION = 'v25'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
+const APP_VERSION = 'v26'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
 
