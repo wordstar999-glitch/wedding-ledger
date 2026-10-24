@@ -501,7 +501,7 @@
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
-const APP_VERSION = 'v52'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
+const APP_VERSION = 'v53'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
 // '…니다.' 뒤에서 줄을 바꾼다(화면에는 white-space: pre-line으로 표시).
@@ -999,7 +999,7 @@ function download(file) {
 $('btnXlsx').addEventListener('click', () => {
   if (!entries.size) return toast('내보낼 내역이 없습니다', true);
   download(makeFile());
-  showUndo('엑셀 저장됨. 파일 백업도 받아 두세요.', () => { exportBackupFile(); toast('파일로 내보냈습니다'); }, '내보내기', 7000);
+  showUndo('엑셀 저장됨. 파일 백업도 받아 두세요.', async () => { const r = await exportBackupFile(); if (r !== 'cancel') toast('파일로 내보냈습니다'); }, '내보내기', 7000);
 });
 /* ---------- 탭 ---------- */
 let curTab = 'input';
@@ -1194,12 +1194,24 @@ async function saveBackupFile(kind) {
   const sm = summarize(sorted());
   await bkSave({ id: Date.now(), savedAt: obj.savedAt, kind, eventName: obj.event.name, eventDate: obj.event.date, count: sm.count, voided: sm.voided, total: sm.total, maxNo: sm.maxNo, text });
 }
-// 파일로 내보낸다(휴대폰 다운로드 폴더, Chrome의 다운로드 알림이 뜬다).
-function exportBackupFile() {
+// 파일로 내보낸다. 가능하면 공유 창(다운로드 알림 없음)으로 저장할 곳을 고르게 하고, 불가능하면 다운로드한다.
+// 반환: 'shared' | 'cancel' | 'download'
+async function exportBackupFile() {
   const text = JSON.stringify(makeBackup('manual'), null, 1);
-  const file = new File([text], `${filePrefix()}_백업_${dateForName()}_${stamp()}.json`, { type: 'application/json' });
-  download(file);
-  return file.name;
+  const name = `${filePrefix()}_백업_${dateForName()}_${stamp()}.json`;
+  if (navigator.canShare && navigator.share) {
+    // 일부 기기는 JSON 형식을 공유 대상으로 받지 않아, 텍스트 형식으로도 시도한다.
+    for (const type of ['application/json', 'text/plain']) {
+      const f = new File([text], name, { type });
+      let ok = false;
+      try { ok = navigator.canShare({ files: [f] }); } catch {}
+      if (!ok) continue;
+      try { await navigator.share({ files: [f], title: '축의금 장부 백업' }); return 'shared'; }
+      catch (e) { if (e && e.name === 'AbortError') return 'cancel'; break; }
+    }
+  }
+  download(new File([text], name, { type: 'application/json' }));
+  return 'download';
 }
 // 복원 파일을 검사해 정제된 데이터를 돌려준다. 문제가 있으면 Error를 던진다.
 function parseBackup(text) {
@@ -1241,10 +1253,11 @@ $('bBackup').addEventListener('click', async () => {
   bMsg('백업했습니다.', 'ok');
   toast('백업했습니다');
 });
-$('bExport').addEventListener('click', () => {
+$('bExport').addEventListener('click', async () => {
   if (!entries.size) return bMsg('내보낼 내역이 없습니다', 'err');
-  exportBackupFile();
-  bMsg('파일로 내보냈습니다.', 'ok');
+  const r = await exportBackupFile();
+  if (r === 'cancel') return bMsg('내보내기를 취소했습니다.');
+  bMsg(r === 'shared' ? '저장할 곳을 선택해 내보냈습니다.' : '파일로 내보냈습니다.', 'ok');
 });
 $('bRestore').addEventListener('click', async () => { await renderBackupList(); $('bdlg').showModal(); });
 // 복원 전 미리보기: 불러올 백업과 현재 장부를 나란히 보여주고 확인을 받는다.
