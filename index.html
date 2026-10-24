@@ -3,9 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#c2410c">
+<meta name="theme-color" content="#6d1a36">
 <link rel="manifest" href="./manifest.json">
 <link rel="icon" href="./icon-192.png">
+<link rel="apple-touch-icon" href="./icon-192.png">
 <title>축의금 장부</title>
 <style>
   :root {
@@ -75,7 +76,7 @@
 
   /* 정산 화면 */
   .totals { display: grid; grid-template-columns: 1fr 2fr; gap: 0.625rem; }
-  .totals div { background: var(--surface); border: 1px solid var(--border); border-radius: 0.875rem; padding: 0.625rem 0.875rem; }
+  .totals div { text-align: center; background: var(--surface); border: 1px solid var(--border); border-radius: 0.875rem; padding: 0.625rem 0.875rem; }
   .totals small { display: block; color: var(--text2); font-size: 0.875rem; }
   .totals b { font-size: 1.75rem; }
   .tools { display: flex; gap: 0.625rem; }
@@ -156,6 +157,7 @@
     border-radius: 999px; border: 2px solid var(--border); background: var(--surface); font-size: 1.125rem; font-weight: 800;
   }
   .chip button { width: 2.25rem; height: 2.25rem; border-radius: 50%; border: 0; background: var(--accent-bg); color: var(--danger); font-size: 1.25rem; font-weight: 800; line-height: 1; }
+  .danger-btn { height: 3.5rem; border-radius: 12px; border: 2px solid var(--danger); background: var(--surface); color: var(--danger); font-size: 1.0625rem; font-weight: 800; }
   #rNo { flex: 1; min-width: 0; height: 3.5rem; font-size: 1.25rem; font-weight: 700; text-align: right; padding: 0 .75rem; border: 2px solid var(--border); border-radius: 12px; background: var(--surface); }
   #rNo:focus { outline: none; border-color: var(--accent); }
   #pNew { flex: 1; min-width: 0; height: 3.5rem; font-size: 1.25rem; font-weight: 700; text-align: right; padding: 0 .75rem; border: 2px solid var(--border); border-radius: 12px; background: var(--surface); }
@@ -236,6 +238,14 @@
     <button id="rBtn" type="button">복구</button>
   </div>
   <div id="rMsg" class="upd-msg" role="status">삭제로 사라진 번호를 되살립니다. 번호만 복구되고, 이름·금액은 정산에서 다시 입력해야 합니다.</div>
+  <p class="set-title">백업 · 복원</p>
+  <div class="tools">
+    <button id="bBackup" type="button" class="fill">백업 저장</button>
+    <button id="bRestore" type="button">복원</button>
+  </div>
+  <input id="bFile" type="file" accept=".json,application/json" hidden>
+  <button id="bReset" type="button" class="danger-btn">새로 시작 (모든 내역 초기화)</button>
+  <div id="bMsg" class="upd-msg" role="status">백업 파일(JSON)에는 하객 이름·금액이 그대로 들어 있습니다. 보관과 전달에 주의하세요.</div>
   <p class="set-title">앱 버전</p>
   <div class="ver">
     <span id="verText"></span>
@@ -273,7 +283,7 @@
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
-const APP_VERSION = 'v18'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
+const APP_VERSION = 'v19'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
 
@@ -286,13 +296,13 @@ const openDB = () => dbp || (dbp = new Promise((res, rej) => {
   r.onsuccess = () => res(r.result);
   r.onerror = () => rej(r.error);
 }));
-// ops: [['put', entry] | ['del', no]] 를 하나의 트랜잭션으로 적용한다.
+// ops: [['put', entry] | ['del', no] | ['clear']] 를 하나의 트랜잭션으로 적용한다.
 async function dbApply(ops) {
   const db = await openDB();
   return new Promise((res, rej) => {
     const tx = db.transaction(STORE, 'readwrite');
     const os = tx.objectStore(STORE);
-    ops.forEach(([k, v]) => k === 'put' ? os.put(v) : os.delete(v));
+    ops.forEach(([k, v]) => k === 'put' ? os.put(v) : k === 'clear' ? os.clear() : os.delete(v));
     tx.oncomplete = () => res();
     tx.onerror = tx.onabort = () => rej(tx.error);
   });
@@ -705,6 +715,117 @@ $('sizes').addEventListener('click', e => {
   markSize();
 });
 
+/* ---------- 빠진 번호 복구 ---------- */
+// 일련번호는 키이므로 1~(지금까지 쓴 최대 번호) 중 빠진 번호가 있으면 '삭제됨'으로 복구한다.
+async function fillGaps() {
+  const topNo = Math.max(hwGet(), ...entries.keys(), 0);
+  const missing = [];
+  for (let n = 1; n <= topNo; n++) if (!entries.has(n)) missing.push({ no: n, name: '', amount: 0, memo: '', ts: Date.now(), void: true });
+  if (missing.length) {
+    try {
+      await dbApply(missing.map(v => ['put', v]));
+      missing.forEach(v => entries.set(v.no, v));
+      toast(`빈 번호 ${missing.length}개를 복구했습니다`);
+    } catch {}
+  }
+  hwSet(topNo);
+  return topNo;
+}
+
+/* ---------- 설정: 백업 · 복원 · 새로 시작 ---------- */
+const BACKUP_FORMAT = 1, MAX_BACKUP_BYTES = 5 * 1024 * 1024;
+const stamp = () => { const d = new Date(), p = n => String(n).padStart(2, '0'); return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}_${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`; };
+function bMsg(t, cls) { const m = $('bMsg'); m.textContent = t; m.className = 'upd-msg' + (cls ? ' ' + cls : ''); }
+const hwReset = n => { try { localStorage.setItem('hw', String(n)); } catch {} };
+function readFs() { const f = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--fs')); return f > 0 ? f : 1; }
+function makeBackup() {
+  return {
+    app: 'wedding-ledger', format: BACKUP_FORMAT, appVersion: APP_VERSION, savedAt: new Date().toISOString(),
+    hw: Math.max(hwGet(), ...entries.keys(), 0),
+    entries: sorted().map(e => ({ no: e.no, name: e.name || '', amount: e.amount || 0, memo: e.memo || '', ts: e.ts || 0, void: !!e.void })),
+    settings: { presets: presets.slice(), fs: readFs(), auto: autoOn },
+  };
+}
+function saveBackupFile(prefix) {
+  const file = new File([JSON.stringify(makeBackup(), null, 1)], `${prefix}_${stamp()}.json`, { type: 'application/json' });
+  download(file);
+  return file.name;
+}
+// 복원 파일을 검사해 정제된 데이터를 돌려준다. 문제가 있으면 Error를 던진다.
+function parseBackup(text) {
+  let o;
+  try { o = JSON.parse(text); } catch { throw new Error('JSON 파일이 아닙니다'); }
+  if (!o || o.app !== 'wedding-ledger') throw new Error('이 앱의 백업 파일이 아닙니다');
+  if (o.format !== BACKUP_FORMAT) throw new Error('지원하지 않는 백업 형식입니다');
+  if (!Array.isArray(o.entries) || o.entries.length > 20000) throw new Error('내역 데이터가 올바르지 않습니다');
+  const seen = new Set(), list = [];
+  for (const e of o.entries) {
+    if (!e || !Number.isInteger(e.no) || e.no < 1 || e.no > 100000) throw new Error('번호 값이 올바르지 않습니다');
+    if (seen.has(e.no)) throw new Error(`번호 ${e.no}이(가) 중복되어 있습니다`);
+    seen.add(e.no);
+    const isVoid = e.void === true;
+    const amount = isVoid ? 0 : e.amount;
+    if (!Number.isInteger(amount) || amount < 0 || amount > 1e9 || (!isVoid && amount <= 0)) throw new Error(`No.${e.no} 금액이 올바르지 않습니다`);
+    list.push({ no: e.no, name: isVoid ? '' : String(e.name || '').trim().slice(0, 40), amount, memo: isVoid ? '' : String(e.memo || '').trim().slice(0, 100), ts: Number.isFinite(e.ts) ? e.ts : 0, void: isVoid });
+  }
+  const maxNo = Math.max(0, ...list.map(e => e.no));
+  const hw = Number.isInteger(o.hw) && o.hw >= maxNo && o.hw <= 100000 ? o.hw : maxNo;
+  const st = o.settings || {};
+  const pr = st.presets;
+  const presetsOk = Array.isArray(pr) && pr.length >= 1 && pr.length <= MAX_PRESETS && pr.every(n => Number.isInteger(n) && n > 0 && n <= MAX_AMOUNT);
+  const fsOk = typeof st.fs === 'number' && st.fs >= 0.7 && st.fs <= 1.15;
+  return { list, hw, presets: presetsOk ? pr : null, fs: fsOk ? st.fs : null, auto: typeof st.auto === 'boolean' ? st.auto : null };
+}
+function refreshAll() {
+  renderPresets(); renderAuto(); markSize(); renderSum();
+  amount = 0; $('manual').value = ''; $('q').value = ''; noNameOnly = false;
+  $('no').value = Math.max(0, ...entries.keys()) + 1;
+  checkDup(); renderAmount(); renderSum();
+}
+$('bBackup').addEventListener('click', () => {
+  if (!entries.size) return bMsg('백업할 내역이 없습니다', 'err');
+  const name = saveBackupFile('축의금백업');
+  bMsg(`백업 저장됨: ${name} (다운로드 폴더를 확인하세요)`, 'ok');
+});
+$('bRestore').addEventListener('click', () => { $('bFile').value = ''; $('bFile').click(); });
+$('bFile').addEventListener('change', async () => {
+  const f = $('bFile').files[0];
+  if (!f) return;
+  if (f.size > MAX_BACKUP_BYTES) return bMsg('파일이 너무 큽니다', 'err');
+  let data;
+  try { data = parseBackup(await f.text()); } catch (e) { return bMsg('복원 실패: ' + e.message, 'err'); }
+  const live = data.list.filter(e => !e.void).length, voided = data.list.length - live;
+  const maxNo = Math.max(0, ...data.list.map(e => e.no));
+  const warn = entries.size ? '\n\n현재 내용은 사라지며, 복원 전에 현재 내용이 자동으로 백업 파일로 저장됩니다.' : '';
+  if (!confirm(`${live}건(번호 1~${maxNo}, 삭제됨 ${voided}개)을 불러옵니다.${warn}\n\n계속할까요?`)) return bMsg('복원을 취소했습니다');
+  let autoName = '';
+  try { if (entries.size) autoName = saveBackupFile('복원전자동백업'); } catch { return bMsg('현재 내용 백업에 실패해 복원하지 않았습니다', 'err'); }
+  try { await dbApply([['clear'], ...data.list.map(e => ['put', e])]); } catch { return bMsg('복원 실패: 저장소 오류', 'err'); }
+  entries.clear();
+  data.list.forEach(e => entries.set(e.no, e));
+  hwReset(data.hw);
+  if (data.presets) { presets = data.presets.slice(); savePresets(); }
+  if (data.fs !== null) { document.documentElement.style.setProperty('--fs', data.fs); try { localStorage.setItem('fs', String(data.fs)); } catch {} }
+  if (data.auto !== null) { autoOn = data.auto; try { localStorage.setItem('auto', autoOn ? '1' : '0'); } catch {} }
+  await fillGaps();
+  refreshAll();
+  bMsg(`복원 완료: ${live}건${autoName ? ' (이전 내용은 ' + autoName + ' 로 저장됨)' : ''}`, 'ok');
+});
+$('bReset').addEventListener('click', async () => {
+  if (!entries.size) return bMsg('초기화할 내역이 없습니다', 'err');
+  const live = [...entries.values()].filter(e => !e.void).length;
+  const ans = prompt(`저장된 ${live}건과 모든 번호가 삭제되고 No.1부터 다시 시작합니다.\n(금액 버튼·글자 크기 설정은 유지됩니다)\n현재 내용은 자동으로 백업 파일로 저장됩니다.\n\n계속하려면 "초기화"를 입력하세요.`);
+  if (ans === null) return;
+  if (ans.trim() !== '초기화') return bMsg('입력이 달라 초기화하지 않았습니다', 'err');
+  let name;
+  try { name = saveBackupFile('초기화전자동백업'); } catch { return bMsg('현재 내용 백업에 실패해 초기화하지 않았습니다', 'err'); }
+  try { await dbApply([['clear']]); } catch { return bMsg('초기화 실패: 저장소 오류', 'err'); }
+  entries.clear();
+  hwReset(0);
+  refreshAll();
+  bMsg(`초기화 완료. 이전 내용은 ${name} 로 저장됨`, 'ok');
+});
+
 /* ---------- 설정: 번호 복구 ---------- */
 function rMsg(t, err) { const m = $('rMsg'); m.textContent = t; m.className = 'upd-msg' + (err ? ' err' : ''); }
 $('rNo').addEventListener('input', () => { $('rNo').value = $('rNo').value.replace(/[^0-9]/g, ''); });
@@ -774,18 +895,7 @@ $('btnUpd').addEventListener('click', async () => {
   } catch {
     toast('저장소를 열 수 없습니다', true);
   }
-  // 일련번호는 키이므로 1~(지금까지 쓴 최대 번호) 중 빠진 번호가 있으면 '삭제됨'으로 복구한다.
-  const topNo = Math.max(hwGet(), ...entries.keys(), 0);
-  const missing = [];
-  for (let n = 1; n <= topNo; n++) if (!entries.has(n)) missing.push({ no: n, name: '', amount: 0, memo: '', ts: Date.now(), void: true });
-  if (missing.length) {
-    try {
-      await dbApply(missing.map(v => ['put', v]));
-      missing.forEach(v => entries.set(v.no, v));
-      toast(`빈 번호 ${missing.length}개를 복구했습니다`);
-    } catch {}
-  }
-  hwSet(topNo);
+  const topNo = await fillGaps();
   $('no').value = topNo + 1;
   renderPresets();
   renderAuto();
