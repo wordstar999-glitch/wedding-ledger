@@ -257,6 +257,8 @@
   .chips { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
   .chip { display: flex; align-items: center; justify-content: space-between; gap: 2px; min-width: 0; min-height: 2.75rem; padding: 0.15rem 0.2rem 0.15rem 0.45rem; border-radius: 999px; border: 2px solid var(--border); background: var(--surface); font-size: calc(var(--t) * 0.9); font-weight: 800; }
   .chip button { flex: 0 0 auto; width: 1.7rem; height: 1.7rem; border-radius: 50%; border: 0; background: var(--accent-bg); color: var(--danger); font-size: var(--t); font-weight: 800; line-height: 1; }
+  .legend { font-size: var(--s); line-height: 1.55; color: var(--text); word-break: keep-all; overflow-wrap: break-word; }
+  .legend b { color: var(--strong); margin-right: 0.35rem; }
   .copy-btn { min-height: 3.25rem; border-radius: 0.75rem; border: 2px solid var(--accent); background: var(--surface); color: var(--accent-fg); font-size: var(--t); font-weight: 800; }
   .danger-btn { min-height: 3.5rem; border-radius: 12px; border: 2px solid var(--danger); background: var(--surface); color: var(--danger); font-size: var(--t); font-weight: 800; }
   #pNew { flex: 1; min-width: 0; height: 3.5rem; font-size: var(--t); font-weight: 700; text-align: right; padding: 0 .75rem; border: 2px solid var(--border); border-radius: 12px; background: var(--surface); }
@@ -389,6 +391,12 @@
       <button id="bExport" type="button" class="copy-btn">파일로 내보내기</button>
       <input id="bFile" type="file" accept=".json,application/json" hidden>
       <button id="bReset" type="button" class="danger-btn">새로 시작 (현재 내용 모두 삭제)</button>
+      <div class="legend">
+        <div><b>백업 저장</b> 앱 안에 사본 저장 (최근 10개)</div>
+        <div><b>복원</b> 사본을 골라 되돌리기</div>
+        <div><b>파일로 내보내기</b> 앱 밖에 보관 (앱을 지워도 남음)</div>
+        <div><b>새로 시작</b> 삭제 전에 자동 백업</div>
+      </div>
       <div id="bMsg" class="upd-msg" role="status">내보낸 파일에는 하객 이름·금액이 들어 있습니다. 보관에 주의하세요.</div>
     </div>
   </details>
@@ -458,8 +466,10 @@
       <summary>설정</summary>
       <div class="sec-body"><ul>
         <li><b>행사 정보</b>에 이름과 날짜를 적어 두세요. 파일 이름에 들어갑니다.</li>
-        <li><b>백업 저장</b>은 행사 중간과 끝에 눌러 두세요. 끝나면 <b>파일로 내보내기</b>도 꼭 하세요.</li>
-        <li><b>복원</b>하면 지금 장부는 백업 내용으로 바뀝니다.</li>
+        <li><b>백업 저장</b>: 앱 안에 사본을 저장합니다. (최근 10개)</li>
+        <li><b>복원</b>: 사본을 골라 되돌립니다. 지금 장부는 바뀝니다.</li>
+        <li><b>파일로 내보내기</b>: 앱 밖에 보관합니다. 앱을 지워도 남습니다.</li>
+        <li><b>행사 중간</b>엔 백업 저장, <b>끝나면</b> 파일로 내보내기를 꼭 하세요.</li>
       </ul></div>
     </details>
     <details class="sec" data-h="etc">
@@ -504,7 +514,7 @@
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
-const APP_VERSION = 'v57'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
+const APP_VERSION = 'v58'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
 // '…니다.' 뒤에서 줄을 바꾼다(화면에는 white-space: pre-line으로 표시).
