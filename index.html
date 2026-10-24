@@ -113,9 +113,15 @@
   dialog .btns { display: flex; gap: 0.5rem; margin-top: 1rem; }
   dialog .btns button { flex: 1; height: 3.5rem; border-radius: 0.75rem; border: 2px solid var(--border); background: var(--surface); font-weight: 800; }
   dialog .btns .del { border-color: var(--danger); color: var(--danger); }
+  dialog { width: min(96vw, 460px) !important; padding: 14px !important; }
+  .erow { display: grid; grid-template-columns: minmax(0, .85fr) minmax(0, 1.8fr) minmax(0, 1.1fr) minmax(0, .95fr); gap: 6px; }
+  dialog .erow label { margin: 0; font-size: .8125rem; text-align: center; }
+  dialog .erow input { width: 100%; min-width: 0; padding: 0 .2rem; font-size: 1.0625rem; text-align: center; height: 3.25rem; margin-top: 4px; }
+  .erow input[type=number] { -moz-appearance: textfield; appearance: textfield; }
+  .erow input::-webkit-outer-spin-button, .erow input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
   dialog .next { width: 100%; height: 3.75rem; margin-top: 1rem; border-radius: 12px; border: 2px solid var(--accent); font-size: 1.25rem; font-weight: 800; }
   dialog .btns { margin-top: .5rem !important; }
-  dialog .ok { background: var(--accent); border-color: var(--accent); color: #fff; }
+  dialog .btns .ok { background: var(--accent); border-color: var(--accent); color: #fff; }
   #dlgErr { color: var(--danger); min-height: 1.375rem; font-size: 0.9375rem; margin-top: 0.5rem; }
 
   #toast {
@@ -231,20 +237,17 @@
 
 <dialog id="dlg">
   <form method="dialog" id="dlgForm" novalidate>
-    <label for="eNo">번호</label>
-    <input id="eNo" type="number" inputmode="numeric" min="1" step="1">
-    <label for="eName">이름</label>
-    <input id="eName" type="text" maxlength="40" lang="ko" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="next">
-    <label for="eAmt">금액(원)</label>
-    <input id="eAmt" type="number" inputmode="numeric" min="1" step="1">
-    <label for="eMemo">비고</label>
-    <input id="eMemo" type="text" maxlength="100" autocomplete="off">
+    <div class="erow">
+      <label>번호<input id="eNo" type="number" inputmode="numeric" min="1" step="1"></label>
+      <label>이름<input id="eName" type="text" maxlength="40" lang="ko" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="done"></label>
+      <label>금액(만)<input id="eAmt" type="text" inputmode="decimal" autocomplete="off"></label>
+      <label>비고<input id="eMemo" type="text" maxlength="100" autocomplete="off" enterkeyhint="done"></label>
+    </div>
     <div id="dlgErr" role="alert"></div>
-    <button type="button" class="ok next" id="eNext">저장 후 다음</button>
     <div class="btns">
       <button type="button" class="del" id="eDel">삭제</button>
       <button type="button" id="eCancel">취소</button>
-      <button type="button" id="eOk">저장</button>
+      <button type="button" class="ok" id="eOk">저장</button>
     </div>
   </form>
 </dialog>
@@ -254,7 +257,7 @@
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
-const APP_VERSION = 'v10'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
+const APP_VERSION = 'v11'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
 
@@ -456,7 +459,7 @@ let noNameOnly = false;
 function renderSum() {
   const all = sorted();
   $('tCount').textContent = fmt(all.length) + '건';
-  $('tSum').textContent = fmt(all.reduce((s, e) => s + e.amount, 0)) + '원';
+  $('tSum').textContent = fmtMan(all.reduce((s, e) => s + e.amount, 0)) + '만원';
   const q = $('q').value.trim().toLowerCase();
   $('fNoN').textContent = all.filter(e => !e.name).length;
   $('fNo').classList.toggle('on', noNameOnly);
@@ -480,7 +483,7 @@ function renderSum() {
     const nm = document.createElement('span'); nm.className = 'nm' + (e.name ? '' : ' none');
     nm.textContent = e.name || '(이름 없음)';
     if (e.memo) { const s = document.createElement('small'); s.textContent = e.memo; nm.appendChild(s); }
-    const a = document.createElement('span'); a.className = 'a'; a.textContent = fmt(e.amount);
+    const a = document.createElement('span'); a.className = 'a'; a.textContent = fmtMan(e.amount) + '만';
     li.append(n, nm, a);
     frag.appendChild(li);
   });
@@ -495,11 +498,14 @@ $('list').addEventListener('click', e => {
 
 /* ---------- 수정 / 삭제 ---------- */
 let editing = null;
+const fmtMan = n => (Math.round(n / 10000 * 10000) / 10000).toLocaleString('ko-KR', { maximumFractionDigits: 4 });
+const toMan = n => String(Math.round(n / 10000 * 10000) / 10000);
+const fromMan = v => Math.round(parseFloat(v) * 10000);
 function openEdit(no) {
   const e = entries.get(no);
   if (!e) return;
   editing = no;
-  $('eNo').value = e.no; $('eName').value = e.name || ''; $('eAmt').value = e.amount; $('eMemo').value = e.memo || '';
+  $('eNo').value = e.no; $('eName').value = e.name || ''; $('eAmt').value = toMan(e.amount); $('eMemo').value = e.memo || '';
   $('dlgErr').textContent = '';
   clearAuto();
   autoArmed = !e.name;
@@ -518,11 +524,11 @@ $('eDel').addEventListener('click', async () => {
 // 수정 내용을 저장한다. 성공하면 저장된 번호를, 실패하면 null을 반환한다(다이얼로그는 닫지 않음).
 async function commitEdit() {
   const old = entries.get(editing);
-  const no = parseInt($('eNo').value, 10), amt = parseInt($('eAmt').value, 10);
+  const no = parseInt($('eNo').value, 10), amt = fromMan($('eAmt').value.replace(/[^0-9.]/g, ''));
   const err = m => { $('dlgErr').textContent = m; return null; };
   if (!old) return err('항목을 찾을 수 없습니다');
   if (!(no >= 1)) return err('번호를 확인하세요');
-  if (!(amt > 0)) return err('금액을 확인하세요');
+  if (!(amt > 0)) return err('금액을 확인하세요 (만원 단위, 예: 5)');
   if (no !== editing && entries.has(no)) return err(`No.${no}은(는) 이미 사용 중입니다`);
   const next = { ...old, no, amount: amt, name: $('eName').value.trim(), memo: $('eMemo').value.trim() };
   const ops = no !== editing ? [['del', editing], ['put', next]] : [['put', next]];
@@ -531,23 +537,19 @@ async function commitEdit() {
   entries.set(no, next);
   return no;
 }
-$('eOk').addEventListener('click', async () => {
-  clearAuto();
-  if (await commitEdit() === null) return;
-  $('dlg').close();
-  afterChange();
-});
 // 저장 후, 현재 번호 뒤에서 이름이 비어 있는 항목을 이어서 연다.
 async function saveAndNext() {
   clearAuto();
+  const wasBlank = autoArmed;
   const no = await commitEdit();
   if (no === null) return;
   afterChange();
+  if (!wasBlank) { $('dlg').close(); return; }
   const next = sorted().find(e => e.no > no && !e.name);
   if (next) { toast(`No.${no} 저장`); openEdit(next.no); }
   else { $('dlg').close(); toast('이름이 비어 있는 다음 항목이 없습니다'); }
 }
-$('eNext').addEventListener('click', saveAndNext);
+$('eOk').addEventListener('click', saveAndNext);
 
 /* 이름 자동 저장: 이름이 비어 있던 항목에서 입력이 멈추면 저장 후 다음 빈 항목으로 */
 const AUTO_DELAY_MS = 1200;
