@@ -24,9 +24,8 @@
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html { font-size: calc(16px * var(--fs, 1)); background: var(--bg); }
   /* 시작할 때 화면이 단계적으로 커지거나 깜빡이지 않도록, 데이터와 화면 크기가 안정된 뒤 한 번에 표시한다 */
-  body { opacity: 0; transition: opacity .18s ease-out; }
+  body { opacity: 0; }
   html.ready body { opacity: 1; }
-  @media (prefers-reduced-motion: reduce) { body { transition: none; } }
   html, body { height: 100%; margin: 0; }
   body {
     background: var(--bg); color: var(--text); overscroll-behavior: none;
@@ -372,7 +371,7 @@
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
-const APP_VERSION = 'v33'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
+const APP_VERSION = 'v34'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
 
@@ -1164,15 +1163,16 @@ $('btnUpd').addEventListener('click', async () => {
   } catch {}
   if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
   if ('serviceWorker' in navigator) {
-    const hadController = !!navigator.serviceWorker.controller;
-    // 새 버전이 적용되면 입력 중인 값이 없을 때 자동으로 새로 불러온다.
-    navigator.serviceWorker.addEventListener('controllerchange', () => {
-      if (!hadController) return;
-      const idle = !amount && !$('manual').value && !$('dlg').open;
-      if (idle) location.reload();
-      else toast('새 버전이 있습니다. 설정에서 업데이트 확인', false);
-    });
     navigator.serviceWorker.register('./sw.js').then(r => r.update()).catch(() => {});
+    // 앱은 저장된 화면을 즉시 열고, 새 버전은 뒤에서 받아 다음에 열 때 적용한다. 새 버전이 있으면 안내만 한다.
+    setTimeout(async () => {
+      try {
+        if (!navigator.onLine) return;
+        const t = await (await fetch('./index.html?chk=' + Date.now(), { cache: 'no-store' })).text();
+        const m = t.match(/const APP_VERSION = '([^']+)'/);
+        if (m && m[1] !== APP_VERSION) toast(`새 버전(${m[1]})이 있습니다. 앱을 다시 열면 적용됩니다`);
+      } catch {}
+    }, 2500);
   }
   // 화면 크기(앱 창이 시스템 바 영역을 포함해 확정되는 시점)가 안정된 뒤 표시한다.
   let last = '', same = 0;
