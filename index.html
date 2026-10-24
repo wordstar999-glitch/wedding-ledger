@@ -13,13 +13,13 @@
     --t: 1.25rem;   /* 모든 주요 글자 크기(설정의 미리보기와 같음) */
     --s: .9375rem;  /* 보조 글자 크기(설명, 작은 라벨) */
     --bg: #f2f8fd; --surface: #ffffff; --border: #cfe0ef; --text: #101c28; --text2: #4f6479;
-    --hint: #b45309; --strong: #0b3d6b; --accent: #1d6fb8; --on-accent: #fff; --accent-fg: #1d6fb8; --accent-bg: #dcecfa; --gold: #38bdf8;
+    --hint: #b45309; --strong: #0b3d6b; --comp-text: #c2410c; --comp-line: #f97316; --comp-bg: #ffedd5; --accent: #1d6fb8; --on-accent: #fff; --accent-fg: #1d6fb8; --accent-bg: #dcecfa; --gold: #38bdf8;
     --open-head: #fde9a0; --open-body: #fff8dc; --open-line: #e2b93b; --open-fg: #5a4300; --danger: #b91c1c; --ok: #15803d;
   }
   @media (prefers-color-scheme: dark) {
     :root {
       --bg: #0f1822; --surface: #16232f; --border: #2a3d4f; --text: #e8f1f9; --text2: #9fb4c7;
-      --hint: #fbbf24; --strong: #cfe6ff; --accent: #2a78c4; --on-accent: #fff; --accent-fg: #8cc4f5; --accent-bg: #1b3a57; --gold: #5ac8fa;
+      --hint: #fbbf24; --strong: #cfe6ff; --comp-text: #fdba74; --comp-line: #fb923c; --comp-bg: #4a2a12; --accent: #2a78c4; --on-accent: #fff; --accent-fg: #8cc4f5; --accent-bg: #1b3a57; --gold: #5ac8fa;
       --open-head: #6b5513; --open-body: #2a2410; --open-line: #c9a227; --open-fg: #ffeaa6; --danger: #f87171; --ok: #4ade80;
     }
   }
@@ -43,21 +43,21 @@
   #list { flex-shrink: 1 !important; }
 
     /* 색상 테마(설정 > 화면 색상). 기본(하늘 파랑)은 :root 값 */
-  :root[data-theme="skylight"] { --strong: #064a73; --bg: #f4fbff; --border: #cfeaf9; --text: #0e2433; --text2: #4a6b80; --accent: #4cc3ff; --on-accent: #06263a; --accent-fg: #0b7bb5; --accent-bg: #dff4ff; --gold: #4cc3ff; }
-  :root[data-theme="mint"] { --strong: #065f46; --bg: #f1fffb; --border: #c9f1e6; --text: #0b2a23; --text2: #46695f; --accent: #4fe0b6; --on-accent: #06332a; --accent-fg: #0a7a5c; --accent-bg: #d9fbf1; --gold: #4fe0b6; }
-  :root[data-theme="lemon"] { --strong: #5c4400; --bg: #fffdf0; --border: #f5e9a8; --text: #3a2e00; --text2: #7a6a1f; --accent: #ffd84a; --on-accent: #3a2e00; --accent-fg: #8a6a00; --accent-bg: #fff5c2; --gold: #ffd84a; --open-head: #cfe9ff; --open-body: #f3f9ff; --open-line: #4cc3ff; --open-fg: #0e2f4a; }
-  :root[data-theme="coral"] { --strong: #9f2a1a; --bg: #fff6f4; --border: #ffd9d2; --text: #4a0f08; --text2: #8a5a52; --accent: #ff8a7a; --on-accent: #4a0f08; --accent-fg: #c2412e; --accent-bg: #ffe5e0; --gold: #ff8a7a; }
-  :root[data-theme="teal"] { --strong: #0b4f4a; --bg: #f1faf9; --border: #cde6e3; --text: #10201f; --text2: #4f6b68; --accent: #0f766e; --on-accent: #ffffff; --accent-fg: #0f766e; --accent-bg: #d8f1ee; --gold: #2dd4bf; }
-  :root[data-theme="ocean"] { --strong: #0a4b5c; --bg: #eff9fc; --border: #c8e3ea; --text: #0f1f26; --text2: #4a6872; --accent: #0e7490; --on-accent: #ffffff; --accent-fg: #0e7490; --accent-bg: #d5eff6; --gold: #22d3ee; }
-  :root[data-theme="rose"] { --strong: #8a1f42; --bg: #fdf3f6; --border: #f0d3dd; --text: #28101a; --text2: #7a5463; --accent: #c2335f; --on-accent: #ffffff; --accent-fg: #c2335f; --accent-bg: #fbe1ea; --gold: #f9a8c0; }
+  :root[data-theme="skylight"] { --strong: #064a73; --comp-text: #c2410c; --comp-line: #f97316; --comp-bg: #ffedd5; --bg: #f4fbff; --border: #cfeaf9; --text: #0e2433; --text2: #4a6b80; --accent: #4cc3ff; --on-accent: #06263a; --accent-fg: #0b7bb5; --accent-bg: #dff4ff; --gold: #4cc3ff; }
+  :root[data-theme="mint"] { --strong: #065f46; --comp-text: #b0124f; --comp-line: #e0457b; --comp-bg: #ffe0ec; --bg: #f1fffb; --border: #c9f1e6; --text: #0b2a23; --text2: #46695f; --accent: #4fe0b6; --on-accent: #06332a; --accent-fg: #0a7a5c; --accent-bg: #d9fbf1; --gold: #4fe0b6; }
+  :root[data-theme="lemon"] { --strong: #5c4400; --comp-text: #5b21b6; --comp-line: #8b5cf6; --comp-bg: #ede4ff; --bg: #fffdf0; --border: #f5e9a8; --text: #3a2e00; --text2: #7a6a1f; --accent: #ffd84a; --on-accent: #3a2e00; --accent-fg: #8a6a00; --accent-bg: #fff5c2; --gold: #ffd84a; --open-head: #cfe9ff; --open-body: #f3f9ff; --open-line: #4cc3ff; --open-fg: #0e2f4a; }
+  :root[data-theme="coral"] { --strong: #9f2a1a; --comp-text: #0f6b73; --comp-line: #14b8c6; --comp-bg: #d9f6f8; --bg: #fff6f4; --border: #ffd9d2; --text: #4a0f08; --text2: #8a5a52; --accent: #ff8a7a; --on-accent: #4a0f08; --accent-fg: #c2412e; --accent-bg: #ffe5e0; --gold: #ff8a7a; }
+  :root[data-theme="teal"] { --strong: #0b4f4a; --comp-text: #b91c3c; --comp-line: #ef4466; --comp-bg: #ffe1e7; --bg: #f1faf9; --border: #cde6e3; --text: #10201f; --text2: #4f6b68; --accent: #0f766e; --on-accent: #ffffff; --accent-fg: #0f766e; --accent-bg: #d8f1ee; --gold: #2dd4bf; }
+  :root[data-theme="ocean"] { --strong: #0a4b5c; --comp-text: #b9381a; --comp-line: #f26b3a; --comp-bg: #ffe6dc; --bg: #eff9fc; --border: #c8e3ea; --text: #0f1f26; --text2: #4a6872; --accent: #0e7490; --on-accent: #ffffff; --accent-fg: #0e7490; --accent-bg: #d5eff6; --gold: #22d3ee; }
+  :root[data-theme="rose"] { --strong: #8a1f42; --comp-text: #0b6b3a; --comp-line: #22a06b; --comp-bg: #d9f5e6; --bg: #fdf3f6; --border: #f0d3dd; --text: #28101a; --text2: #7a5463; --accent: #c2335f; --on-accent: #ffffff; --accent-fg: #c2335f; --accent-bg: #fbe1ea; --gold: #f9a8c0; }
   @media (prefers-color-scheme: dark) {
-    :root[data-theme="skylight"] { --strong: #d6f0ff; --bg: #0c1a24; --surface: #14262f; --border: #24475a; --text: #e6f4fb; --text2: #9dbfd3; --accent: #3bb4f2; --on-accent: #04202f; --accent-fg: #8fd8ff; --accent-bg: #123a52; --gold: #4cc3ff; }
-    :root[data-theme="mint"] { --strong: #c6f6e4; --bg: #0b1a16; --surface: #12261f; --border: #1f4538; --text: #e3f7f0; --text2: #9ac4b5; --accent: #3fcfa5; --on-accent: #04261e; --accent-fg: #86f0d0; --accent-bg: #14423a; --gold: #4fe0b6; }
-    :root[data-theme="lemon"] { --strong: #fff0a8; --bg: #1a1708; --surface: #262210; --border: #4a4220; --text: #fff6cf; --text2: #d1c37a; --accent: #f2c935; --on-accent: #2a2200; --accent-fg: #ffe27a; --accent-bg: #4a3f10; --gold: #ffd84a; --open-head: #1f4a6b; --open-body: #14232f; --open-line: #4cc3ff; --open-fg: #cfe9ff; }
-    :root[data-theme="coral"] { --strong: #ffd5cf; --bg: #1f1412; --surface: #2b1c19; --border: #4a2f2a; --text: #ffeceb; --text2: #d2aaa4; --accent: #ff8a7a; --on-accent: #3a0d07; --accent-fg: #ffb3a8; --accent-bg: #4a231d; --gold: #ff8a7a; }
-    :root[data-theme="teal"] { --strong: #c9f3ee; --bg: #0e1a19; --surface: #152624; --border: #24413e; --text: #e6f4f2; --text2: #9dbab6; --accent: #1b8a80; --on-accent: #ffffff; --accent-fg: #7fd8cf; --accent-bg: #17403c; --gold: #2dd4bf; }
-    :root[data-theme="ocean"] { --strong: #c9eef7; --bg: #0d1a20; --surface: #14262f; --border: #234250; --text: #e5f2f6; --text2: #9bb9c4; --accent: #1a86a8; --on-accent: #ffffff; --accent-fg: #7cd0e8; --accent-bg: #164256; --gold: #22d3ee; }
-    :root[data-theme="rose"] { --strong: #ffd3e1; --bg: #1f1217; --surface: #2b1a21; --border: #4a2d38; --text: #fbeaee; --text2: #cba8b3; --accent: #c8456f; --on-accent: #ffffff; --accent-fg: #f5a8c0; --accent-bg: #4a2030; --gold: #f9a8c0; }
+    :root[data-theme="skylight"] { --strong: #d6f0ff; --comp-text: #fdba74; --comp-line: #fb923c; --comp-bg: #4a2a12; --bg: #0c1a24; --surface: #14262f; --border: #24475a; --text: #e6f4fb; --text2: #9dbfd3; --accent: #3bb4f2; --on-accent: #04202f; --accent-fg: #8fd8ff; --accent-bg: #123a52; --gold: #4cc3ff; }
+    :root[data-theme="mint"] { --strong: #c6f6e4; --comp-text: #ffb3d1; --comp-line: #f06292; --comp-bg: #4a1830; --bg: #0b1a16; --surface: #12261f; --border: #1f4538; --text: #e3f7f0; --text2: #9ac4b5; --accent: #3fcfa5; --on-accent: #04261e; --accent-fg: #86f0d0; --accent-bg: #14423a; --gold: #4fe0b6; }
+    :root[data-theme="lemon"] { --strong: #fff0a8; --comp-text: #d8c4ff; --comp-line: #a78bfa; --comp-bg: #2e2150; --bg: #1a1708; --surface: #262210; --border: #4a4220; --text: #fff6cf; --text2: #d1c37a; --accent: #f2c935; --on-accent: #2a2200; --accent-fg: #ffe27a; --accent-bg: #4a3f10; --gold: #ffd84a; --open-head: #1f4a6b; --open-body: #14232f; --open-line: #4cc3ff; --open-fg: #cfe9ff; }
+    :root[data-theme="coral"] { --strong: #ffd5cf; --comp-text: #9ae8ef; --comp-line: #22c5d3; --comp-bg: #10373b; --bg: #1f1412; --surface: #2b1c19; --border: #4a2f2a; --text: #ffeceb; --text2: #d2aaa4; --accent: #ff8a7a; --on-accent: #3a0d07; --accent-fg: #ffb3a8; --accent-bg: #4a231d; --gold: #ff8a7a; }
+    :root[data-theme="teal"] { --strong: #c9f3ee; --comp-text: #ffb4c0; --comp-line: #f87189; --comp-bg: #4a1a24; --bg: #0e1a19; --surface: #152624; --border: #24413e; --text: #e6f4f2; --text2: #9dbab6; --accent: #1b8a80; --on-accent: #ffffff; --accent-fg: #7fd8cf; --accent-bg: #17403c; --gold: #2dd4bf; }
+    :root[data-theme="ocean"] { --strong: #c9eef7; --comp-text: #ffc0a8; --comp-line: #fb8a5c; --comp-bg: #4a2216; --bg: #0d1a20; --surface: #14262f; --border: #234250; --text: #e5f2f6; --text2: #9bb9c4; --accent: #1a86a8; --on-accent: #ffffff; --accent-fg: #7cd0e8; --accent-bg: #164256; --gold: #22d3ee; }
+    :root[data-theme="rose"] { --strong: #ffd3e1; --comp-text: #9af0c1; --comp-line: #34d399; --comp-bg: #12402b; --bg: #1f1217; --surface: #2b1a21; --border: #4a2d38; --text: #fbeaee; --text2: #cba8b3; --accent: #c8456f; --on-accent: #ffffff; --accent-fg: #f5a8c0; --accent-bg: #4a2030; --gold: #f9a8c0; }
   }
   .swatches { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
   .swatches button { display: flex; align-items: center; gap: 0.6rem; min-height: 3.25rem; padding: 0.25rem 0.6rem; border: 2px solid var(--border); border-radius: 0.75rem; background: var(--surface); color: var(--text); font-size: var(--s); font-weight: 800; text-align: left; }
@@ -98,13 +98,13 @@
   /* 입력 화면: 글자 크기가 클수록 화면을 채우고, 작을수록 전체 칸이 줄어 저장 버튼이 위로 올라온다 */
   .fit { display: flex; flex-direction: column; gap: 0.75rem; height: calc(100% * var(--fs, 1) / 1.15); min-height: min-content; }
   .no-row { display: flex; align-items: stretch; gap: 0.75rem; flex: 1 1 0; min-height: 3rem; }
-  .no-row label { display: flex; align-items: center; font-size: var(--t); font-weight: 900; color: var(--accent-fg); }
+  .no-row label { display: flex; align-items: center; font-size: var(--t); font-weight: 900; color: var(--comp-text); }
   #no {
     flex: 1; min-width: 0; font-size: calc(var(--t) * 1.35); font-weight: 900; text-align: center;
-    color: var(--strong); border: 3px solid var(--accent); border-radius: 0.875rem; background: var(--surface);
+    color: var(--comp-text); border: 3px solid var(--comp-line); border-radius: 0.875rem; background: var(--surface);
     transition: transform .15s, background-color .15s;
   }
-  #no.bump { transform: scale(1.06); background: var(--accent-bg); }
+  #no.bump { transform: scale(1.06); background: var(--comp-bg); }
   #no.dup { border-color: var(--danger); background: var(--danger); color: #fff; }
   .amt-disp {
     flex: 1 1 0; min-height: 3rem; border-radius: 0.875rem; background: var(--accent-bg); color: var(--accent-fg);
@@ -501,7 +501,7 @@
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
-const APP_VERSION = 'v54'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
+const APP_VERSION = 'v55'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
 // '…니다.' 뒤에서 줄을 바꾼다(화면에는 white-space: pre-line으로 표시).
