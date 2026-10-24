@@ -352,7 +352,7 @@
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
-const APP_VERSION = 'v30'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
+const APP_VERSION = 'v31'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
 
@@ -770,15 +770,22 @@ $('tabInput').addEventListener('click', () => show('input'));
 $('tabSum').addEventListener('click', () => show('sum'));
 $('tabSet').addEventListener('click', () => show('set'));
 
-/* ---------- 설정: 접기/펼치기(상태는 기기에 저장) ---------- */
+/* ---------- 설정: 한 번에 하나만 펼치기(아코디언, 열린 항목은 기기에 저장) ---------- */
 (function () {
-  let st = {};
-  try { st = JSON.parse(localStorage.getItem('sec')) || {}; } catch {}
-  document.querySelectorAll('details.sec').forEach(d => {
-    if (st[d.dataset.k]) d.open = true;
+  const all = [...document.querySelectorAll('details.sec')];
+  let openKey = '';
+  try { openKey = localStorage.getItem('secOpen') || ''; } catch {}
+  all.forEach(d => {
+    d.open = d.dataset.k === openKey;
     d.addEventListener('toggle', () => {
-      st[d.dataset.k] = d.open;
-      try { localStorage.setItem('sec', JSON.stringify(st)); } catch {}
+      if (d.open) {
+        all.forEach(o => { if (o !== d) o.open = false; });
+        openKey = d.dataset.k;
+        setTimeout(() => d.scrollIntoView({ block: 'nearest', behavior: 'smooth' }), 0);
+      } else if (openKey === d.dataset.k) {
+        openKey = '';
+      }
+      try { localStorage.setItem('secOpen', openKey); } catch {}
     });
   });
 })();
