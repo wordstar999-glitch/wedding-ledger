@@ -84,10 +84,10 @@
   .help-body li b { color: var(--accent-fg); }
 
   /* 앱 설치 안내(브라우저에서 열었고 설치 가능할 때만 표시) */
-  #installBar { flex: 0 0 auto; display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.75rem; background: var(--accent-bg); border-bottom: 1px solid var(--border); font-size: var(--s); color: var(--text); }
+  #installBar { flex: 0 0 auto; display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem 0.5rem; padding: 0.5rem 0.75rem; background: var(--accent-bg); border-bottom: 1px solid var(--border); font-size: var(--s); color: var(--text); }
   #installBar[hidden] { display: none; }
-  #installBar span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
-  #installBtn { flex: 0 0 auto; min-height: 2.75rem; padding: 0 1rem; border: 0; border-radius: 0.625rem; background: var(--accent); color: var(--on-accent); font-size: var(--t); font-weight: 800; }
+  #installBar span { flex: 1 1 100%; min-width: 0; overflow-wrap: break-word; word-break: keep-all; font-weight: 700; }
+  #installBtn { flex: 1 1 0; min-height: 2.75rem; padding: 0 1rem; border: 0; border-radius: 0.625rem; background: var(--accent); color: var(--on-accent); font-size: var(--t); font-weight: 800; }
   #installX { flex: 0 0 auto; min-width: 2.75rem; min-height: 2.75rem; border: 0; background: none; color: var(--text2); font-size: var(--t); }
 
   /* 하단 탭 */
@@ -254,6 +254,7 @@
   .chips { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
   .chip { display: flex; align-items: center; justify-content: space-between; gap: 2px; min-width: 0; min-height: 2.75rem; padding: 0.15rem 0.2rem 0.15rem 0.45rem; border-radius: 999px; border: 2px solid var(--border); background: var(--surface); font-size: calc(var(--t) * 0.9); font-weight: 800; }
   .chip button { flex: 0 0 auto; width: 1.7rem; height: 1.7rem; border-radius: 50%; border: 0; background: var(--accent-bg); color: var(--danger); font-size: var(--t); font-weight: 800; line-height: 1; }
+  .copy-btn { min-height: 3.25rem; border-radius: 0.75rem; border: 2px solid var(--accent); background: var(--surface); color: var(--accent-fg); font-size: var(--t); font-weight: 800; }
   .danger-btn { min-height: 3.5rem; border-radius: 12px; border: 2px solid var(--danger); background: var(--surface); color: var(--danger); font-size: var(--t); font-weight: 800; }
   #pNew { flex: 1; min-width: 0; height: 3.5rem; font-size: var(--t); font-weight: 700; text-align: right; padding: 0 .75rem; border: 2px solid var(--border); border-radius: 12px; background: var(--surface); }
   #pNew:focus { outline: none; border-color: var(--accent); }
@@ -283,7 +284,7 @@
 </header>
 
 <div id="installBar" hidden>
-  <span>앱으로 설치하면 더 빨리 열려요</span>
+  <span id="installMsg">앱으로 설치하면 더 빨리 열려요</span>
   <button id="installBtn" type="button">앱 설치</button>
   <button id="installX" type="button" aria-label="닫기">✕</button>
 </div>
@@ -395,6 +396,8 @@
         <button id="btnUpd" type="button">업데이트 확인</button>
       </div>
       <div id="updMsg" class="upd-msg" role="status"></div>
+      <div id="instState" class="upd-msg"></div>
+      <button id="btnCopy" type="button" class="copy-btn">설치 안내 문구 복사</button>
     </div>
   </details>
 </main>
@@ -498,7 +501,7 @@
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
-const APP_VERSION = 'v49'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
+const APP_VERSION = 'v50'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
 // '…니다.' 뒤에서 줄을 바꾼다(화면에는 white-space: pre-line으로 표시).
@@ -1396,32 +1399,91 @@ $('btnUpd').addEventListener('click', async () => {
   btn.disabled = false;
 });
 
-/* ---------- 앱 설치 버튼: 브라우저가 설치를 허용하면 한 번 눌러 설치 확인창을 띄운다 ---------- */
-(function () {
+/* ---------- 설치 안내: 환경(Chrome·카카오톡 등 인앱·iPhone·삼성 인터넷)에 맞춰 안내한다 ---------- */
+// Android에서 인앱 브라우저(카카오톡 등)의 현재 주소를 Chrome으로 여는 주소
+function chromeIntentUrl() {
+  const u = new URL(location.href);
+  return 'intent://' + u.host + u.pathname + u.search + '#Intent;scheme=https;package=com.android.chrome;end';
+}
+function appBaseUrl() { return location.origin + location.pathname.replace(/index\.html$/, ''); }
+function detectEnv() {
+  const ua = navigator.userAgent || '';
   const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
-  let ev = null;
+  const isIOS = /iPhone|iPad|iPod/i.test(ua);
+  const isAndroid = /Android/i.test(ua);
+  const inApp = /KAKAOTALK|NAVER\(inapp|Instagram|FBAN|FBAV|FB_IAB|Line\/|DaumApps|; wv\)/i.test(ua);
+  const samsung = /SamsungBrowser/i.test(ua);
+  const chrome = isAndroid && /Chrome\//.test(ua) && !inApp && !samsung && !/Edg|OPR|Whale/.test(ua);
+  const iosSafari = isIOS && /Safari\//.test(ua) && !/CriOS|FxiOS|EdgiOS|OPiOS/.test(ua) && !inApp;
+  return { standalone, isIOS, isAndroid, inApp, samsung, chrome, iosSafari };
+}
+(function () {
+  const env = detectEnv();
   const bar = $('installBar');
+  let ev = null, action = null;
   const hide = () => { bar.hidden = true; };
   let snoozed = false;
   try { snoozed = Date.now() - Number(localStorage.getItem('installSnooze') || 0) < 7 * 24 * 3600 * 1000; } catch {}
+  const snooze = () => { hide(); try { localStorage.setItem('installSnooze', String(Date.now())); } catch {} };
+  function showBar(msg, label, fn) {
+    if (env.standalone || snoozed) return;
+    $('installMsg').textContent = msg;
+    $('installBtn').hidden = !label;
+    if (label) $('installBtn').textContent = label;
+    action = fn || null;
+    bar.hidden = false;
+  }
+  // 설정의 설치 상태
+  $('instState').textContent = env.standalone ? '지금 설치된 앱으로 실행 중입니다.' : '지금은 브라우저에서 실행 중입니다.';
+  if (!env.standalone) {
+    if (env.inApp && env.isAndroid) {
+      showBar('이 화면에서는 설치할 수 없어요. Chrome에서 열어 주세요.', 'Chrome으로 열기', () => {
+        location.href = chromeIntentUrl();
+        setTimeout(() => { if (!document.hidden) toast("안 되면 메뉴(⋮)의 '다른 브라우저로 열기'를 누르세요", true); }, 1800);
+      });
+    } else if (env.inApp && env.isIOS) {
+      showBar("이 화면에서는 설치할 수 없어요. 메뉴에서 'Safari로 열기'를 누르세요.");
+    } else if (env.isIOS) {
+      showBar("공유 버튼(□↑)을 누르고 '홈 화면에 추가'를 선택하세요.");
+    } else if (env.samsung) {
+      showBar("메뉴(≡)에서 '현재 페이지 추가' → '홈 화면'을 선택하세요.");
+    } else if (env.chrome) {
+      // 설치 가능 이벤트가 오면 '앱 설치' 버튼, 오지 않으면 메뉴 안내
+      setTimeout(() => { if (!ev && bar.hidden) showBar("메뉴(⋮)에서 '앱 설치'를 누르세요."); }, 4000);
+    }
+  }
   window.addEventListener('beforeinstallprompt', e => {
     e.preventDefault();
     ev = e;
-    if (!standalone && !snoozed) bar.hidden = false;
+    showBar('앱으로 설치하면 더 빨리 열려요', '앱 설치', async () => {
+      const p = ev;
+      ev = null;
+      p.prompt();
+      let r = null;
+      try { r = await p.userChoice; } catch {}
+      hide();
+      if (r && r.outcome === 'dismissed') snooze();
+    });
   });
   window.addEventListener('appinstalled', () => { ev = null; hide(); toast('설치되었습니다. 홈 화면의 앱을 열어 주세요'); });
-  $('installBtn').addEventListener('click', async () => {
-    if (!ev) return hide();
-    const p = ev;
-    ev = null;
-    p.prompt();
-    let r = null;
-    try { r = await p.userChoice; } catch {}
-    hide();
-    if (r && r.outcome === 'dismissed') { try { localStorage.setItem('installSnooze', String(Date.now())); } catch {} }
-  });
-  $('installX').addEventListener('click', () => { hide(); try { localStorage.setItem('installSnooze', String(Date.now())); } catch {} });
+  $('installBtn').addEventListener('click', () => { if (action) action(); else hide(); });
+  $('installX').addEventListener('click', snooze);
 })();
+
+// 설치 안내 문구를 복사해서 카카오톡 등으로 보낼 수 있게 한다.
+$('btnCopy').addEventListener('click', async () => {
+  const text = `축의금 장부 앱입니다.\nChrome에서 아래 주소를 열고 '앱 설치'를 눌러 주세요.\n${appBaseUrl()}`;
+  let ok = false;
+  try { await navigator.clipboard.writeText(text); ok = true; } catch {}
+  if (!ok) {
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    try { ok = document.execCommand('copy'); } catch {}
+    ta.remove();
+  }
+  toast(ok ? '복사했습니다. 카카오톡에 붙여넣어 보내세요' : '복사하지 못했습니다', !ok);
+});
 
 /* ---------- 시작 ---------- */
 autoBreakIn($('helpBody'));
