@@ -84,14 +84,14 @@
   .totals b { font-size: var(--t); }
   .tools { display: flex; gap: 0.625rem; }
   .tools button {
-    flex: 1; height: 3.5rem; border-radius: 0.75rem; border: 2px solid var(--accent); background: var(--surface);
+    flex: 1; min-height: 3.5rem; border-radius: 0.75rem; border: 2px solid var(--accent); background: var(--surface);
     color: var(--accent); font-size: var(--t); font-weight: 800;
   }
   .tools button.fill { background: var(--accent); color: #fff; }
-  .srch { display: flex; gap: 8px; }
-  #fNo { flex: 0 0 auto; height: 3.25rem; padding: 0 .9rem; border-radius: 12px; border: 2px solid var(--border); background: var(--surface); font-size: var(--t); font-weight: 800; }
+  .srch { display: flex; flex-wrap: wrap; gap: 8px; }
+  #fNo { flex: 0 0 auto; min-height: 3.25rem; padding: 0 .9rem; border-radius: 12px; border: 2px solid var(--border); background: var(--surface); font-size: var(--t); font-weight: 800; }
   #fNo.on { background: var(--accent); border-color: var(--accent); color: #fff; }
-  #q { flex: 1; min-width: 0;
+  #q { flex: 1 1 9rem; min-width: 0;
     height: 3.25rem; padding: 0 0.875rem; font-size: var(--t); border: 2px solid var(--border); border-radius: 0.75rem; background: var(--surface);
   }
   #q:focus { outline: none; border-color: var(--accent); }
@@ -101,7 +101,7 @@
     min-height: 4rem; padding: 0.5rem 0.875rem; background: var(--surface); border: 1px solid var(--border); border-radius: 0.75rem;
   }
   #list .n { font-size: var(--t); font-weight: 800; color: var(--accent); }
-  #list .nm { font-size: var(--t); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #list .nm { font-size: var(--t); min-width: 0; overflow-wrap: anywhere; }
   #list .nm.none { color: var(--text2); }
   #list .nm small { display: block; color: var(--text2); font-size: var(--s); }
   #list .a { font-size: var(--t); font-weight: 800; }
@@ -117,17 +117,23 @@
   }
   dialog input:focus { outline: none; border-color: var(--accent); }
   dialog .btns { display: flex; gap: 0.5rem; margin-top: 1rem; }
-  dialog .btns button { flex: 1; height: 3.5rem; border-radius: 0.75rem; border: 2px solid var(--border); background: var(--surface); font-weight: 800; }
+  dialog .btns button { flex: 1; min-height: 3.5rem; border-radius: 0.75rem; border: 2px solid var(--border); background: var(--surface); font-weight: 800; }
   dialog .btns .del { border-color: var(--danger); color: var(--danger); }
   dialog { width: min(96vw, 460px) !important; padding: 14px !important; }
-  .erow { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 2.2fr) minmax(0, 1fr) minmax(0, .9fr); gap: 6px; }
-  dialog .erow label { display: flex; flex-direction: column; align-items: stretch; margin: 0; font-size: .8125rem; text-align: center; white-space: nowrap; line-height: 1.2; min-width: 0; }
-  dialog .erow input { width: 100%; min-width: 0; padding: 0 .2rem; font-size: var(--t); text-align: center; height: 3.25rem; margin-top: 4px; }
+  .erow { display: grid; grid-template-columns: minmax(2.4rem, .7fr) minmax(0, 2.6fr) minmax(2.9rem, .95fr) minmax(2.2rem, .85fr); gap: 6px; }
+  @media (max-width: 355px) {
+    .erow { grid-template-columns: 1fr 1fr; }
+    .erow label:nth-child(2) { grid-column: 1 / -1; order: 3; }
+    .erow label:nth-child(3) { order: 2; }
+    .erow label:nth-child(4) { grid-column: 1 / -1; order: 4; }
+  }
+  dialog .erow label { display: flex; flex-direction: column; align-items: stretch; margin: 0; font-size: .75rem; letter-spacing: -.02em; text-align: center; white-space: nowrap; line-height: 1.2; min-width: 0; }
+  dialog .erow input { width: 100%; min-width: 0; padding: 0 .1rem; font-size: var(--t); text-align: center; height: 3.25rem; margin-top: 4px; }
   .erow input[readonly] { background: var(--border); color: var(--text2); }
   #list li.void { opacity: .6; }
   .erow input[type=number] { -moz-appearance: textfield; appearance: textfield; }
   .erow input::-webkit-outer-spin-button, .erow input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-  dialog .mic { width: 100%; height: 3.75rem; margin-top: .75rem; border-radius: 12px; border: 2px solid var(--accent); background: var(--accent-bg); color: var(--accent); font-size: var(--t); font-weight: 800; }
+  dialog .mic { width: 100%; min-height: 3.75rem; margin-top: .75rem; border-radius: 12px; border: 2px solid var(--accent); background: var(--accent-bg); color: var(--accent); font-size: var(--t); font-weight: 800; }
   dialog .mic.on { background: var(--danger); border-color: var(--danger); color: #fff; animation: pulse 1s infinite; }
   @keyframes pulse { 50% { opacity: .7; } }
   dialog .next { width: 100%; height: 3.75rem; margin-top: 1rem; border-radius: 12px; border: 2px solid var(--accent); font-size: var(--t); font-weight: 800; }
@@ -144,10 +150,16 @@
   #toast.err { background: var(--danger); }
 
   /* 설정 화면 */
+  .sec { flex-shrink: 0; border: 2px solid var(--border); border-radius: 0.875rem; background: var(--surface); }
+  .sec > summary { list-style: none; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; min-height: 3.25rem; padding: 0.5rem 0.9rem; font-size: var(--t); font-weight: 800; }
+  .sec > summary::-webkit-details-marker { display: none; }
+  .sec > summary::after { content: '▾'; color: var(--text2); transition: transform .15s; }
+  .sec[open] > summary::after { transform: rotate(180deg); }
+  .sec-body { display: flex; flex-direction: column; gap: 0.75rem; padding: 0 0.9rem 0.9rem; }
   .set-title { font-size: var(--t); font-weight: 800; margin: 4px 0 0; }
   .sizes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .sizes button {
-    height: 4.5rem; border-radius: 14px; border: 2px solid var(--border); background: var(--surface);
+    min-height: 4.5rem; border-radius: 14px; border: 2px solid var(--border); background: var(--surface);
     font-size: var(--t); font-weight: 800;
   }
   .sizes button small { display: block; font-size: var(--s); font-weight: 500; color: var(--text2); }
@@ -156,11 +168,11 @@
   .preview { padding: 14px; border: 1px dashed var(--border); border-radius: 14px; color: var(--text2); }
   .chips { display: flex; flex-wrap: wrap; gap: 8px; }
   .chip {
-    display: inline-flex; align-items: center; gap: 8px; height: 3rem; padding: 0 .5rem 0 1rem;
+    display: inline-flex; align-items: center; gap: 8px; min-height: 3rem; padding: 0 .5rem 0 1rem;
     border-radius: 999px; border: 2px solid var(--border); background: var(--surface); font-size: var(--t); font-weight: 800;
   }
   .chip button { width: 2.25rem; height: 2.25rem; border-radius: 50%; border: 0; background: var(--accent-bg); color: var(--danger); font-size: var(--t); font-weight: 800; line-height: 1; }
-  .danger-btn { height: 3.5rem; border-radius: 12px; border: 2px solid var(--danger); background: var(--surface); color: var(--danger); font-size: var(--t); font-weight: 800; }
+  .danger-btn { min-height: 3.5rem; border-radius: 12px; border: 2px solid var(--danger); background: var(--surface); color: var(--danger); font-size: var(--t); font-weight: 800; }
   #pNew { flex: 1; min-width: 0; height: 3.5rem; font-size: var(--t); font-weight: 700; text-align: right; padding: 0 .75rem; border: 2px solid var(--border); border-radius: 12px; background: var(--surface); }
   #pNew:focus { outline: none; border-color: var(--accent); }
   .unit { flex: 0 0 auto !important; font-size: var(--t) !important; color: var(--text2); }
@@ -168,7 +180,7 @@
   .ver { display: flex; align-items: center; gap: 10px; }
   .ver span { flex: 1; font-size: var(--t); font-weight: 800; }
   .ver button {
-    height: 3.5rem; padding: 0 1.2rem; border-radius: 12px; border: 2px solid var(--accent);
+    min-height: 3.5rem; padding: 0 1.2rem; border-radius: 12px; border: 2px solid var(--accent);
     background: var(--surface); color: var(--accent); font-size: var(--t); font-weight: 800;
   }
   .upd-msg { min-height: 1.5rem; color: var(--text2); font-size: var(--s); }
@@ -204,50 +216,70 @@
     <button id="btnXlsx" type="button" class="fill">엑셀 저장</button>
   </div>
   <div class="srch">
-    <input id="q" type="search" placeholder="번호·이름 검색" aria-label="검색">
+    <input id="q" type="search" placeholder="번호·이름" aria-label="검색">
     <button id="fNo" type="button" aria-pressed="false">이름 없음 <b id="fNoN">0</b></button>
   </div>
   <ul id="list"></ul>
 </main>
 
 <main id="vSet" hidden>
-  <p class="set-title">글자 크기</p>
-  <div class="sizes" id="sizes">
-    <button data-s="0.7" type="button">아주 작게<small>70%</small></button>
-    <button data-s="0.85" type="button">작게<small>85%</small></button>
-    <button data-s="1" type="button">보통<small>100%</small></button>
-    <button data-s="1.15" type="button">크게<small>115%</small></button>
-  </div>
-  <div class="preview">미리보기<br><b>No. 12 · 10만원</b></div>
-  <p class="set-title">이름 자동 저장</p>
-  <div class="ver">
-    <span id="autoText"></span>
-    <button id="btnAuto" type="button"></button>
-  </div>
-  <div class="upd-msg">이름이 비어 있던 항목에 이름을 입력하고 1.2초 동안 입력이 없으면 자동으로 저장하고 다음 빈 항목을 엽니다.</div>
-  <p class="set-title">금액 버튼</p>
-  <div class="chips" id="chips"></div>
-  <div class="ver">
-    <input id="pNew" type="text" inputmode="decimal" placeholder="추가할 금액 (예: 7)" aria-label="추가할 금액(만원)">
-    <span class="unit">만원</span>
-    <button id="pAdd" type="button">추가</button>
-  </div>
-  <div id="pMsg" class="upd-msg" role="status"></div>
-  <button id="pReset" type="button" class="link-btn">기본값으로 되돌리기</button>
-  <p class="set-title">백업 · 복원</p>
-  <div class="tools">
-    <button id="bBackup" type="button" class="fill">백업 저장</button>
-    <button id="bRestore" type="button">복원</button>
-  </div>
-  <input id="bFile" type="file" accept=".json,application/json" hidden>
-  <button id="bReset" type="button" class="danger-btn">새로 시작 (모든 내역 초기화)</button>
-  <div id="bMsg" class="upd-msg" role="status">백업 파일(JSON)에는 하객 이름·금액이 그대로 들어 있습니다. 보관과 전달에 주의하세요.</div>
-  <p class="set-title">앱 버전</p>
-  <div class="ver">
-    <span id="verText"></span>
-    <button id="btnUpd" type="button">업데이트 확인</button>
-  </div>
-  <div id="updMsg" class="upd-msg" role="status"></div>
+  <details class="sec" data-k="size">
+    <summary>글자 크기</summary>
+    <div class="sec-body">
+      <div class="sizes" id="sizes">
+        <button data-s="0.7" type="button">아주 작게<small>70%</small></button>
+        <button data-s="0.85" type="button">작게<small>85%</small></button>
+        <button data-s="1" type="button">보통<small>100%</small></button>
+        <button data-s="1.15" type="button">크게<small>115%</small></button>
+      </div>
+      <div class="preview">미리보기<br><b>No. 12 · 10만원</b></div>
+    </div>
+  </details>
+  <details class="sec" data-k="auto">
+    <summary>이름 자동 저장</summary>
+    <div class="sec-body">
+      <div class="ver">
+        <span id="autoText"></span>
+        <button id="btnAuto" type="button"></button>
+      </div>
+      <div class="upd-msg">이름이 비어 있던 항목에 이름을 입력하고 1.2초 동안 입력이 없으면 자동으로 저장하고 다음 빈 항목을 엽니다.</div>
+    </div>
+  </details>
+  <details class="sec" data-k="presets">
+    <summary>금액 버튼</summary>
+    <div class="sec-body">
+      <div class="chips" id="chips"></div>
+      <div class="ver">
+        <input id="pNew" type="text" inputmode="decimal" placeholder="예: 7" aria-label="추가할 금액(만원)">
+        <span class="unit">만원</span>
+        <button id="pAdd" type="button">추가</button>
+      </div>
+      <div id="pMsg" class="upd-msg" role="status"></div>
+      <button id="pReset" type="button" class="link-btn">기본값으로 되돌리기</button>
+    </div>
+  </details>
+  <details class="sec" data-k="backup">
+    <summary>백업 · 복원</summary>
+    <div class="sec-body">
+      <div class="tools">
+        <button id="bBackup" type="button" class="fill">백업 저장</button>
+        <button id="bRestore" type="button">복원</button>
+      </div>
+      <input id="bFile" type="file" accept=".json,application/json" hidden>
+      <button id="bReset" type="button" class="danger-btn">새로 시작 (모든 내역 초기화)</button>
+      <div id="bMsg" class="upd-msg" role="status">백업 파일(JSON)에는 하객 이름·금액이 그대로 들어 있습니다. 보관과 전달에 주의하세요.</div>
+    </div>
+  </details>
+  <details class="sec" data-k="ver">
+    <summary>앱 버전</summary>
+    <div class="sec-body">
+      <div class="ver">
+        <span id="verText"></span>
+        <button id="btnUpd" type="button">업데이트 확인</button>
+      </div>
+      <div id="updMsg" class="upd-msg" role="status"></div>
+    </div>
+  </details>
 </main>
 
 <nav>
@@ -279,7 +311,7 @@
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
-const APP_VERSION = 'v23'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
+const APP_VERSION = 'v25'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
 
@@ -697,6 +729,19 @@ function show(tab) {
 $('tabInput').addEventListener('click', () => show('input'));
 $('tabSum').addEventListener('click', () => show('sum'));
 $('tabSet').addEventListener('click', () => show('set'));
+
+/* ---------- 설정: 접기/펼치기(상태는 기기에 저장) ---------- */
+(function () {
+  let st = {};
+  try { st = JSON.parse(localStorage.getItem('sec')) || {}; } catch {}
+  document.querySelectorAll('details.sec').forEach(d => {
+    if (st[d.dataset.k]) d.open = true;
+    d.addEventListener('toggle', () => {
+      st[d.dataset.k] = d.open;
+      try { localStorage.setItem('sec', JSON.stringify(st)); } catch {}
+    });
+  });
+})();
 
 /* ---------- 설정: 글자 크기 ---------- */
 function markSize() {
