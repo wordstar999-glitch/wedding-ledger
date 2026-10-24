@@ -158,8 +158,6 @@
   }
   .chip button { width: 2.25rem; height: 2.25rem; border-radius: 50%; border: 0; background: var(--accent-bg); color: var(--danger); font-size: 1.25rem; font-weight: 800; line-height: 1; }
   .danger-btn { height: 3.5rem; border-radius: 12px; border: 2px solid var(--danger); background: var(--surface); color: var(--danger); font-size: 1.0625rem; font-weight: 800; }
-  #rNo { flex: 1; min-width: 0; height: 3.5rem; font-size: 1.25rem; font-weight: 700; text-align: right; padding: 0 .75rem; border: 2px solid var(--border); border-radius: 12px; background: var(--surface); }
-  #rNo:focus { outline: none; border-color: var(--accent); }
   #pNew { flex: 1; min-width: 0; height: 3.5rem; font-size: 1.25rem; font-weight: 700; text-align: right; padding: 0 .75rem; border: 2px solid var(--border); border-radius: 12px; background: var(--surface); }
   #pNew:focus { outline: none; border-color: var(--accent); }
   .unit { flex: 0 0 auto !important; font-size: 1.125rem !important; color: var(--text2); }
@@ -232,12 +230,6 @@
   </div>
   <div id="pMsg" class="upd-msg" role="status"></div>
   <button id="pReset" type="button" class="link-btn">기본값으로 되돌리기</button>
-  <p class="set-title">번호 복구</p>
-  <div class="ver">
-    <input id="rNo" type="text" inputmode="numeric" placeholder="복구할 번호 (예: 12)" aria-label="복구할 번호">
-    <button id="rBtn" type="button">복구</button>
-  </div>
-  <div id="rMsg" class="upd-msg" role="status">삭제로 사라진 번호를 되살립니다. 번호만 복구되고, 이름·금액은 정산에서 다시 입력해야 합니다.</div>
   <p class="set-title">백업 · 복원</p>
   <div class="tools">
     <button id="bBackup" type="button" class="fill">백업 저장</button>
@@ -283,7 +275,7 @@
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
-const APP_VERSION = 'v19'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
+const APP_VERSION = 'v20'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
 
@@ -824,25 +816,6 @@ $('bReset').addEventListener('click', async () => {
   hwReset(0);
   refreshAll();
   bMsg(`초기화 완료. 이전 내용은 ${name} 로 저장됨`, 'ok');
-});
-
-/* ---------- 설정: 번호 복구 ---------- */
-function rMsg(t, err) { const m = $('rMsg'); m.textContent = t; m.className = 'upd-msg' + (err ? ' err' : ''); }
-$('rNo').addEventListener('input', () => { $('rNo').value = $('rNo').value.replace(/[^0-9]/g, ''); });
-$('rBtn').addEventListener('click', async () => {
-  const n = parseInt($('rNo').value, 10);
-  const top = Math.max(hwGet(), ...entries.keys(), 0);
-  if (!(n >= 1)) return rMsg('번호를 입력하세요', true);
-  if (entries.has(n)) return rMsg(`No.${n}은(는) 이미 있습니다`, true);
-  if (n > top + 1) return rMsg(`마지막 번호(${top}) 바로 다음(${top + 1})까지만 복구할 수 있습니다`, true);
-  const v = { no: n, name: '', amount: 0, memo: '', ts: Date.now(), void: true };
-  try { await dbApply([['put', v]]); } catch { return rMsg('복구 실패', true); }
-  entries.set(n, v);
-  hwSet(n);
-  $('rNo').value = '';
-  if (!(parseInt($('no').value, 10) > n)) $('no').value = nextFree(n + 1);
-  checkDup();
-  rMsg(`No.${n} 복구됨. 정산에서 해당 번호를 눌러 금액을 입력하세요`);
 });
 
 /* ---------- 설정: 업데이트 확인 ---------- */
