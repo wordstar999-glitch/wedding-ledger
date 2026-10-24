@@ -29,7 +29,7 @@
   }
   button, input, textarea { font: inherit; color: inherit; }
   button { touch-action: manipulation; cursor: pointer; }
-  main { flex: 1; min-height: 0; padding: 0.75rem 1rem; display: flex; flex-direction: column; gap: 0.75rem; }
+  main { overflow-y: auto; flex: 1; min-height: 0; padding: 0.75rem 1rem; display: flex; flex-direction: column; gap: 0.75rem; }
   main[hidden] { display: none; }
 
   /* 하단 탭 */
@@ -132,6 +132,16 @@
   .sizes button.on { background: var(--accent); border-color: var(--accent); color: #fff; }
   .sizes button.on small { color: #fff; }
   .preview { padding: 14px; border: 1px dashed var(--border); border-radius: 14px; color: var(--text2); }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 8px; height: 3rem; padding: 0 .5rem 0 1rem;
+    border-radius: 999px; border: 2px solid var(--border); background: var(--surface); font-size: 1.125rem; font-weight: 800;
+  }
+  .chip button { width: 2.25rem; height: 2.25rem; border-radius: 50%; border: 0; background: var(--accent-bg); color: var(--danger); font-size: 1.25rem; font-weight: 800; line-height: 1; }
+  #pNew { flex: 1; min-width: 0; height: 3.5rem; font-size: 1.25rem; font-weight: 700; text-align: right; padding: 0 .75rem; border: 2px solid var(--border); border-radius: 12px; background: var(--surface); }
+  #pNew:focus { outline: none; border-color: var(--accent); }
+  .unit { flex: 0 0 auto !important; font-size: 1.125rem !important; color: var(--text2); }
+  .link-btn { align-self: flex-start; border: 0; background: none; color: var(--text2); text-decoration: underline; font-size: 1rem; padding: .5rem 0; }
   .ver { display: flex; align-items: center; gap: 10px; }
   .ver span { flex: 1; font-size: 1.25rem; font-weight: 800; }
   .ver button {
@@ -153,14 +163,7 @@
     <input id="no" type="number" inputmode="numeric" min="1" step="1" value="1" aria-label="일련번호">
   </div>
   <div class="amt-disp empty" id="amtDisp">금액을 선택하세요</div>
-  <div class="presets" id="presets">
-    <button data-v="30000">3만</button>
-    <button data-v="50000">5만</button>
-    <button data-v="100000">10만</button>
-    <button data-v="200000">20만</button>
-    <button data-v="300000">30만</button>
-    <button data-v="500000">50만</button>
-  </div>
+  <div class="presets" id="presets"></div>
   <div class="manual">
     <input id="manual" type="text" inputmode="decimal" placeholder="직접 입력 (예: 7)" aria-label="직접 입력 금액(만원)">
     <span>만원</span>
@@ -191,6 +194,15 @@
     <button data-s="1.3" type="button">아주 크게<small>130%</small></button>
   </div>
   <div class="preview">미리보기<br><b>No. 12 · 100,000원</b></div>
+  <p class="set-title">금액 버튼</p>
+  <div class="chips" id="chips"></div>
+  <div class="ver">
+    <input id="pNew" type="text" inputmode="decimal" placeholder="추가할 금액 (예: 7)" aria-label="추가할 금액(만원)">
+    <span class="unit">만원</span>
+    <button id="pAdd" type="button">추가</button>
+  </div>
+  <div id="pMsg" class="upd-msg" role="status"></div>
+  <button id="pReset" type="button" class="link-btn">기본값으로 되돌리기</button>
   <p class="set-title">앱 버전</p>
   <div class="ver">
     <span id="verText"></span>
@@ -229,7 +241,7 @@
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
-const APP_VERSION = 'v3'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
+const APP_VERSION = 'v4'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
 
@@ -279,6 +291,78 @@ function toast(msg, err) {
   toastTimer = setTimeout(() => { t.className = ''; }, err ? 2200 : 1100);
   if (navigator.vibrate) navigator.vibrate(err ? [60, 40, 60] : 25);
 }
+
+/* ---------- 금액 프리셋 ---------- */
+const DEFAULT_PRESETS = [30000, 50000, 100000, 200000, 300000, 500000];
+const MAX_PRESETS = 9, MAX_AMOUNT = 999990000;
+let presets = DEFAULT_PRESETS.slice();
+try {
+  const v = JSON.parse(localStorage.getItem('presets'));
+  if (Array.isArray(v) && v.length && v.length <= MAX_PRESETS && v.every(n => Number.isInteger(n) && n > 0 && n <= MAX_AMOUNT)) presets = v;
+} catch {}
+const savePresets = () => { try { localStorage.setItem('presets', JSON.stringify(presets)); } catch {} };
+const presetLabel = n => n < 10000 ? (n % 1000 ? fmt(n) : (n / 1000) + '천') : (n / 10000) + '만';
+
+function renderPresets() {
+  const box = $('presets');
+  box.textContent = '';
+  presets.forEach(n => {
+    const b = document.createElement('button');
+    b.dataset.v = n;
+    b.textContent = presetLabel(n);
+    box.appendChild(b);
+  });
+  const chips = $('chips');
+  chips.textContent = '';
+  presets.forEach(n => {
+    const c = document.createElement('span');
+    c.className = 'chip';
+    c.append(presetLabel(n));
+    const x = document.createElement('button');
+    x.type = 'button'; x.dataset.del = n; x.textContent = '×'; x.setAttribute('aria-label', presetLabel(n) + ' 삭제');
+    c.appendChild(x);
+    chips.appendChild(c);
+  });
+  if (typeof renderAmount === 'function') renderAmount();
+}
+function pMsg(t, err) { const m = $('pMsg'); m.textContent = t; m.className = 'upd-msg' + (err ? ' err' : ''); }
+$('pAdd').addEventListener('click', () => {
+  const f = parseFloat($('pNew').value);
+  const n = Math.round(f * 10000);
+  if (!isFinite(n) || n <= 0) return pMsg('금액을 숫자로 입력하세요 (만원 단위)', true);
+  if (n > MAX_AMOUNT) return pMsg('금액이 너무 큽니다', true);
+  if (presets.includes(n)) return pMsg('이미 있는 금액입니다', true);
+  if (presets.length >= MAX_PRESETS) return pMsg(`버튼은 최대 ${MAX_PRESETS}개까지 만들 수 있습니다`, true);
+  presets.push(n);
+  presets.sort((a, b) => a - b);
+  savePresets();
+  $('pNew').value = '';
+  pMsg(`${presetLabel(n)} 추가됨`);
+  renderPresets();
+});
+$('pNew').addEventListener('input', () => {
+  const v = $('pNew').value.replace(/[^0-9.]/g, '');
+  if (v !== $('pNew').value) $('pNew').value = v;
+});
+$('chips').addEventListener('click', e => {
+  const b = e.target.closest('button[data-del]');
+  if (!b) return;
+  const n = Number(b.dataset.del);
+  if (presets.length <= 1) return pMsg('버튼은 최소 1개가 필요합니다', true);
+  if (!confirm(`${presetLabel(n)} 버튼을 삭제할까요?`)) return;
+  presets = presets.filter(v => v !== n);
+  if (amount === n && !$('manual').value) amount = 0;
+  savePresets();
+  pMsg(`${presetLabel(n)} 삭제됨`);
+  renderPresets();
+});
+$('pReset').addEventListener('click', () => {
+  if (!confirm('금액 버튼을 기본값(3·5·10·20·30·50만)으로 되돌릴까요?')) return;
+  presets = DEFAULT_PRESETS.slice();
+  savePresets();
+  pMsg('기본값으로 되돌림');
+  renderPresets();
+});
 
 /* ---------- 입력 화면 ---------- */
 function renderAmount() {
@@ -522,7 +606,7 @@ $('btnUpd').addEventListener('click', async () => {
     toast('저장소를 열 수 없습니다', true);
   }
   $('no').value = Math.max(0, ...entries.keys()) + 1;
-  renderAmount();
+  renderPresets();
   markSize();
   try {
     const u = sessionStorage.getItem('updated');
