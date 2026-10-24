@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#6d1a36">
 <link rel="manifest" href="./manifest.json">
-<link rel="icon" href="./icon-192.png">
-<link rel="apple-touch-icon" href="./icon-192.png">
+<link rel="icon" href="./icon-192.png?v=2">
+<link rel="apple-touch-icon" href="./icon-192.png?v=2">
 <title>축의금 장부</title>
 <style>
   :root {
@@ -151,6 +151,20 @@
   #toast.err { background: var(--danger); }
 
   /* 설정 화면 */
+  .fld { display: flex; flex-direction: column; gap: 4px; font-size: var(--s); color: var(--text2); }
+  .fld input { min-height: 3.25rem; padding: 0 .75rem; font-size: var(--t); border: 2px solid var(--border); border-radius: 12px; background: var(--bg); color: var(--text); }
+  .fld input:focus { outline: none; border-color: var(--accent); }
+  .ev-line { text-align: center; font-size: var(--s); color: var(--text2); overflow-wrap: anywhere; }
+  #rdlg { width: min(96vw, 520px); }
+  .rd-title { margin: 0 0 .5rem; font-size: var(--t); font-weight: 800; }
+  .rd-table { width: 100%; border-collapse: collapse; font-size: var(--s); }
+  .rd-table th, .rd-table td { padding: .4rem .3rem; border-bottom: 1px solid var(--border); text-align: left; vertical-align: top; overflow-wrap: anywhere; }
+  .rd-table th { color: var(--text2); font-weight: 700; width: 22%; }
+  .rd-table thead th { color: var(--text); }
+  .rd-table td.bk { font-weight: 800; color: var(--accent); }
+  #rdlg .btns { display: flex; gap: 8px; margin-top: 1rem; }
+  #rdlg .btns button { flex: 1; min-height: 3.5rem; border-radius: 0.75rem; border: 2px solid var(--border); background: var(--surface); font-size: var(--t); font-weight: 800; }
+  #rdlg .btns .ok { background: var(--accent); border-color: var(--accent); color: #fff; }
   .sec { flex-shrink: 0; border: 2px solid var(--border); border-radius: 0.875rem; background: var(--surface); }
   .sec > summary { list-style: none; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; min-height: 3.25rem; padding: 0.5rem 0.9rem; font-size: var(--t); font-weight: 800; }
   .sec > summary::-webkit-details-marker { display: none; }
@@ -211,6 +225,7 @@
 </main>
 
 <main id="vSum" hidden>
+  <div id="evLine" class="ev-line" hidden></div>
   <div class="totals">
     <div><small>총 건수</small><b id="tCount">0</b></div>
     <div><small>총 금액</small><b id="tSum">0</b></div>
@@ -226,6 +241,14 @@
 </main>
 
 <main id="vSet" hidden>
+  <details class="sec" data-k="event">
+    <summary>행사 정보</summary>
+    <div class="sec-body">
+      <label class="fld">행사 이름<input id="evName" type="text" maxlength="30" autocomplete="off" placeholder="예: 철수영희"></label>
+      <label class="fld">행사 날짜<input id="evDate" type="date"></label>
+      <div class="upd-msg">백업·엑셀 파일 이름, 정산 화면, 복원 미리보기에 표시됩니다. 여러 행사를 구분하는 데 사용하세요.</div>
+    </div>
+  </details>
   <details class="sec" data-k="size">
     <summary>글자 크기</summary>
     <div class="sec-body">
@@ -309,12 +332,22 @@
   </form>
 </dialog>
 
+<dialog id="rdlg">
+  <p class="rd-title">복원할 백업 확인</p>
+  <table class="rd-table" id="rdTable"></table>
+  <div class="upd-msg" id="rdNote"></div>
+  <div class="btns">
+    <button type="button" id="rdCancel">취소</button>
+    <button type="button" class="ok" id="rdOk">복원</button>
+  </div>
+</dialog>
+
 <div id="toast" role="status"></div>
 
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
-const APP_VERSION = 'v26'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
+const APP_VERSION = 'v27'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
 
@@ -700,8 +733,7 @@ function afterChange() {
 
 /* ---------- 엑셀 내보내기 ---------- */
 function makeFile() {
-  const d = new Date(), p = n => String(n).padStart(2, '0');
-  const name = `축의금_${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}.xlsx`;
+  const name = `${filePrefix()}_정산_${dateForName()}.xlsx`;
   const blob = buildXlsx(sorted());
   return new File([blob], name, { type: blob.type });
 }
@@ -777,21 +809,73 @@ async function fillGaps() {
 }
 
 /* ---------- 설정: 백업 · 복원 · 새로 시작 ---------- */
+/* ---------- 행사 정보(이름·날짜): 백업·엑셀 파일 이름과 복원 미리보기에 사용 ---------- */
+const pad2 = n => String(n).padStart(2, '0');
+const ymd = d => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+const ymdhm = d => `${ymd(d)} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+const validDate = v => typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v) && !isNaN(new Date(v));
+function getEvent() {
+  try {
+    const o = JSON.parse(localStorage.getItem('event')) || {};
+    return { name: String(o.name || '').trim().slice(0, 30), date: validDate(o.date) ? o.date : '' };
+  } catch { return { name: '', date: '' }; }
+}
+function setEvent(ev) {
+  try { localStorage.setItem('event', JSON.stringify({ name: (ev.name || '').trim().slice(0, 30), date: validDate(ev.date) ? ev.date : '' })); } catch {}
+  renderEvent();
+}
+function renderEvent() {
+  const ev = getEvent();
+  if (document.activeElement !== $('evName')) $('evName').value = ev.name;
+  $('evDate').value = ev.date;
+  const line = $('evLine');
+  line.hidden = !(ev.name || ev.date);
+  line.textContent = [ev.name, ev.date].filter(Boolean).join(' · ');
+}
+$('evName').addEventListener('input', () => setEvent({ name: $('evName').value, date: getEvent().date }));
+$('evDate').addEventListener('change', () => setEvent({ name: getEvent().name, date: $('evDate').value }));
+const safeName = t => t.replace(/[\\/:*?"<>|\s]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 30);
+// 장부 요약: 건수, 삭제됨 수, 총 금액(원), 최대 번호, 입력 기간
+function summarize(list) {
+  const live = list.filter(e => !e.void);
+  const ts = live.map(e => e.ts).filter(t => t > 0);
+  return { count: live.length, voided: list.length - live.length, total: live.reduce((a, e) => a + e.amount, 0),
+    maxNo: Math.max(0, ...list.map(e => e.no)), first: ts.length ? Math.min(...ts) : 0, last: ts.length ? Math.max(...ts) : 0 };
+}
+function periodText(sm) {
+  if (!sm.first) return '(알 수 없음)';
+  const a = new Date(sm.first), b = new Date(sm.last);
+  return ymd(a) === ymd(b) ? `${ymdhm(a)} ~ ${pad2(b.getHours())}:${pad2(b.getMinutes())}` : `${ymdhm(a)} ~ ${ymdhm(b)}`;
+}
+// 파일 이름용: 행사 날짜(없으면 입력 시작일, 그것도 없으면 오늘)
+function dateForName() {
+  const ev = getEvent();
+  if (ev.date) return ev.date.replace(/-/g, '');
+  const sm = summarize(sorted());
+  return ymd(sm.first ? new Date(sm.first) : new Date()).replace(/-/g, '');
+}
+const filePrefix = () => safeName(getEvent().name) || '축의금';
+
 const BACKUP_FORMAT = 1, MAX_BACKUP_BYTES = 5 * 1024 * 1024;
 const stamp = () => { const d = new Date(), p = n => String(n).padStart(2, '0'); return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}_${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`; };
 function bMsg(t, cls) { const m = $('bMsg'); m.textContent = t; m.className = 'upd-msg' + (cls ? ' ' + cls : ''); }
 const hwReset = n => { try { localStorage.setItem('hw', String(n)); } catch {} };
 function readFs() { const f = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--fs')); return f > 0 ? f : 1; }
-function makeBackup() {
+function makeBackup(kind) {
+  const sm = summarize(sorted());
   return {
-    app: 'wedding-ledger', format: BACKUP_FORMAT, appVersion: APP_VERSION, savedAt: new Date().toISOString(),
+    app: 'wedding-ledger', format: BACKUP_FORMAT, appVersion: APP_VERSION, savedAt: new Date().toISOString(), kind,
+    event: getEvent(),
+    summary: { count: sm.count, voided: sm.voided, totalWon: sm.total, maxNo: sm.maxNo, firstAt: sm.first, lastAt: sm.last },
     hw: Math.max(hwGet(), ...entries.keys(), 0),
     entries: sorted().map(e => ({ no: e.no, name: e.name || '', amount: e.amount || 0, memo: e.memo || '', ts: e.ts || 0, void: !!e.void })),
     settings: { presets: presets.slice(), fs: readFs(), auto: autoOn },
   };
 }
-function saveBackupFile(prefix) {
-  const file = new File([JSON.stringify(makeBackup(), null, 1)], `${prefix}_${stamp()}.json`, { type: 'application/json' });
+const KIND_LABEL = { manual: '백업', 'before-restore': '복원전자동백업', 'before-reset': '초기화전자동백업' };
+const KIND_TEXT = { manual: '수동 백업', 'before-restore': '복원 전 자동 백업', 'before-reset': '초기화 전 자동 백업' };
+function saveBackupFile(kind) {
+  const file = new File([JSON.stringify(makeBackup(kind), null, 1)], `${filePrefix()}_${KIND_LABEL[kind]}_${dateForName()}_${stamp()}.json`, { type: 'application/json' });
   download(file);
   return file.name;
 }
@@ -818,7 +902,10 @@ function parseBackup(text) {
   const pr = st.presets;
   const presetsOk = Array.isArray(pr) && pr.length >= 1 && pr.length <= MAX_PRESETS && pr.every(n => Number.isInteger(n) && n > 0 && n <= MAX_AMOUNT);
   const fsOk = typeof st.fs === 'number' && st.fs >= 0.7 && st.fs <= 1.15;
-  return { list, hw, presets: presetsOk ? pr : null, fs: fsOk ? st.fs : null, auto: typeof st.auto === 'boolean' ? st.auto : null };
+  const evo = o.event && typeof o.event === 'object' ? o.event : {};
+  const saved = typeof o.savedAt === 'string' && !isNaN(new Date(o.savedAt)) ? o.savedAt : '';
+  const meta = { eventName: String(evo.name || '').trim().slice(0, 30), eventDate: validDate(evo.date) ? evo.date : '', savedAt: saved, kind: KIND_TEXT[o.kind] ? o.kind : '', hasEvent: !!o.event };
+  return { meta, list, hw, presets: presetsOk ? pr : null, fs: fsOk ? st.fs : null, auto: typeof st.auto === 'boolean' ? st.auto : null };
 }
 function refreshAll() {
   renderPresets(); renderAuto(); markSize(); renderSum();
@@ -828,22 +915,54 @@ function refreshAll() {
 }
 $('bBackup').addEventListener('click', () => {
   if (!entries.size) return bMsg('백업할 내역이 없습니다', 'err');
-  const name = saveBackupFile('축의금백업');
+  const name = saveBackupFile('manual');
   bMsg(`백업 저장됨: ${name} (다운로드 폴더를 확인하세요)`, 'ok');
 });
 $('bRestore').addEventListener('click', () => { $('bFile').value = ''; $('bFile').click(); });
+// 복원 전 미리보기: 불러올 백업과 현재 장부를 나란히 보여주고 확인을 받는다.
+function confirmRestore(data) {
+  const cur = summarize(sorted()), bk = summarize(data.list), curEv = getEvent();
+  const money = n => fmtMan(n) + '만원';
+  const rows = [
+    ['행사 이름', data.meta.eventName || (data.meta.hasEvent ? '(미입력)' : '(없음: 이전 형식)'), curEv.name || '(미입력)'],
+    ['행사 날짜', data.meta.eventDate || '(미입력)', curEv.date || '(미입력)'],
+    ['입력 기간', periodText(bk), entries.size ? periodText(cur) : '(비어 있음)'],
+    ['백업 저장일', data.meta.savedAt ? ymdhm(new Date(data.meta.savedAt)) : '(알 수 없음)', ''],
+    ['백업 종류', data.meta.kind ? KIND_TEXT[data.meta.kind] : '(알 수 없음)', ''],
+    ['건수', `${bk.count}건` + (bk.voided ? ` (삭제됨 ${bk.voided})` : ''), entries.size ? `${cur.count}건` + (cur.voided ? ` (삭제됨 ${cur.voided})` : '') : '(비어 있음)'],
+    ['번호 범위', bk.maxNo ? `1~${bk.maxNo}` : '-', entries.size ? `1~${cur.maxNo}` : '-'],
+    ['총 금액', money(bk.total), entries.size ? money(cur.total) : '-'],
+  ];
+  const t = $('rdTable');
+  t.textContent = '';
+  const head = t.createTHead().insertRow();
+  ['', '불러올 백업', '현재 장부'].forEach(h => { const th = document.createElement('th'); th.textContent = h; head.appendChild(th); });
+  const tb = t.createTBody();
+  rows.forEach(r => {
+    const tr = tb.insertRow();
+    const th = document.createElement('th'); th.textContent = r[0]; tr.appendChild(th);
+    const a = tr.insertCell(); a.className = 'bk'; a.textContent = r[1];
+    tr.insertCell().textContent = r[2];
+  });
+  $('rdNote').textContent = entries.size ? '복원하면 현재 장부는 이 백업으로 교체됩니다. 복원 직전에 현재 장부가 자동으로 백업 파일로 저장됩니다.' : '현재 장부가 비어 있어 바로 복원됩니다.';
+  return new Promise(res => {
+    const done = v => { $('rdlg').close(); $('rdOk').onclick = $('rdCancel').onclick = null; res(v); };
+    $('rdOk').onclick = () => done(true);
+    $('rdCancel').onclick = () => done(false);
+    $('rdlg').oncancel = () => res(false);
+    $('rdlg').showModal();
+  });
+}
 $('bFile').addEventListener('change', async () => {
   const f = $('bFile').files[0];
   if (!f) return;
   if (f.size > MAX_BACKUP_BYTES) return bMsg('파일이 너무 큽니다', 'err');
   let data;
   try { data = parseBackup(await f.text()); } catch (e) { return bMsg('복원 실패: ' + e.message, 'err'); }
-  const live = data.list.filter(e => !e.void).length, voided = data.list.length - live;
-  const maxNo = Math.max(0, ...data.list.map(e => e.no));
-  const warn = entries.size ? '\n\n현재 내용은 사라지며, 복원 전에 현재 내용이 자동으로 백업 파일로 저장됩니다.' : '';
-  if (!confirm(`${live}건(번호 1~${maxNo}, 삭제됨 ${voided}개)을 불러옵니다.${warn}\n\n계속할까요?`)) return bMsg('복원을 취소했습니다');
+  const live = data.list.filter(e => !e.void).length;
+  if (!(await confirmRestore(data))) return bMsg('복원을 취소했습니다');
   let autoName = '';
-  try { if (entries.size) autoName = saveBackupFile('복원전자동백업'); } catch { return bMsg('현재 내용 백업에 실패해 복원하지 않았습니다', 'err'); }
+  try { if (entries.size) autoName = saveBackupFile('before-restore'); } catch { return bMsg('현재 내용 백업에 실패해 복원하지 않았습니다', 'err'); }
   try { await dbApply([['clear'], ...data.list.map(e => ['put', e])]); } catch { return bMsg('복원 실패: 저장소 오류', 'err'); }
   entries.clear();
   data.list.forEach(e => entries.set(e.no, e));
@@ -851,6 +970,7 @@ $('bFile').addEventListener('change', async () => {
   if (data.presets) { presets = data.presets.slice(); savePresets(); }
   if (data.fs !== null) { document.documentElement.style.setProperty('--fs', data.fs); try { localStorage.setItem('fs', String(data.fs)); } catch {} }
   if (data.auto !== null) { autoOn = data.auto; try { localStorage.setItem('auto', autoOn ? '1' : '0'); } catch {} }
+  setEvent({ name: data.meta.eventName, date: data.meta.eventDate });
   await fillGaps();
   refreshAll();
   bMsg(`복원 완료: ${live}건${autoName ? ' (이전 내용은 ' + autoName + ' 로 저장됨)' : ''}`, 'ok');
@@ -862,10 +982,14 @@ $('bReset').addEventListener('click', async () => {
   if (ans === null) return;
   if (ans.trim() !== '초기화') return bMsg('입력이 달라 초기화하지 않았습니다', 'err');
   let name;
-  try { name = saveBackupFile('초기화전자동백업'); } catch { return bMsg('현재 내용 백업에 실패해 초기화하지 않았습니다', 'err'); }
+  try { name = saveBackupFile('before-reset'); } catch { return bMsg('현재 내용 백업에 실패해 초기화하지 않았습니다', 'err'); }
   try { await dbApply([['clear']]); } catch { return bMsg('초기화 실패: 저장소 오류', 'err'); }
   entries.clear();
   hwReset(0);
+  // 새 행사 정보를 받는다(취소하면 비워 둔다. 설정의 '행사 정보'에서 나중에 입력할 수 있다).
+  const newName = prompt('새 행사 이름을 입력하세요 (비워 두어도 됩니다)', '');
+  const dateIn = newName === null ? null : prompt('행사 날짜를 입력하세요 (예: ' + ymd(new Date()) + ')', ymd(new Date()));
+  setEvent({ name: newName || '', date: validDate((dateIn || '').trim()) ? dateIn.trim() : '' });
   refreshAll();
   bMsg(`초기화 완료. 이전 내용은 ${name} 로 저장됨`, 'ok');
 });
@@ -924,6 +1048,7 @@ $('btnUpd').addEventListener('click', async () => {
   $('no').value = topNo + 1;
   renderPresets();
   renderAuto();
+  renderEvent();
   markSize();
   try {
     const u = sessionStorage.getItem('updated');
