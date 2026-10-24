@@ -183,7 +183,6 @@
   </div>
   <div class="tools">
     <button id="btnXlsx" type="button" class="fill">엑셀 저장</button>
-    <button id="btnShare" type="button">공유</button>
   </div>
   <div class="srch">
     <input id="q" type="search" placeholder="번호·이름 검색" aria-label="검색">
@@ -249,7 +248,7 @@
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
-const APP_VERSION = 'v8'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
+const APP_VERSION = 'v9'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
 
@@ -547,7 +546,7 @@ function afterChange() {
   checkDup();
 }
 
-/* ---------- 엑셀 내보내기 / 공유 ---------- */
+/* ---------- 엑셀 내보내기 ---------- */
 function makeFile() {
   const d = new Date(), p = n => String(n).padStart(2, '0');
   const name = `축의금_${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}.xlsx`;
@@ -568,18 +567,6 @@ $('btnXlsx').addEventListener('click', () => {
   download(makeFile());
   toast('엑셀 파일 저장');
 });
-$('btnShare').addEventListener('click', async () => {
-  if (!entries.size) return toast('내보낼 내역이 없습니다', true);
-  const file = makeFile();
-  if (navigator.canShare && navigator.canShare({ files: [file] })) {
-    try { await navigator.share({ files: [file], title: '축의금 장부' }); }
-    catch (e) { if (e.name !== 'AbortError') toast('공유 실패', true); }
-  } else {
-    download(file);
-    toast('공유 미지원: 파일로 저장됨', true);
-  }
-});
-
 /* ---------- 탭 ---------- */
 function show(tab) {
   $('vInput').hidden = tab !== 'input';
