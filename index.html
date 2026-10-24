@@ -193,7 +193,7 @@
   dialog .next { width: 100%; height: 3.75rem; margin-top: 1rem; border-radius: 12px; border: 2px solid var(--accent); font-size: var(--t); font-weight: 800; }
   dialog .btns { margin-top: .4rem !important; }
   /* 수정 팝업은 화면 위쪽에 붙여서 글자판이 올라와도 삭제·취소·저장 버튼이 보이게 한다 */
-  #dlg { margin: clamp(0.75rem, 6vh, 3.5rem) auto auto !important; }
+  #dlg { margin: 0.5rem auto auto !important; }
   #dlgForm { display: flex; flex-direction: column; min-height: 16rem; }
   #dlgForm .mic { margin-top: auto; margin-bottom: auto; }
   dialog .btns .ok { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
@@ -517,7 +517,7 @@
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
-const APP_VERSION = 'v60'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
+const APP_VERSION = 'v61'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
 // '…니다.' 뒤에서 줄을 바꾼다(화면에는 white-space: pre-line으로 표시).
@@ -870,8 +870,22 @@ function openEdit(no) {
   clearAuto();
   autoArmed = !e.name && !e.void;
   if (!$('dlg').open) $('dlg').showModal();
-  setTimeout(() => { $('eName').focus(); $('eName').select(); }, 0);
+  placeDlg();
+  setTimeout(() => { $('eName').focus(); $('eName').select(); placeDlg(); }, 0);
 }
+// 수정창을 보이는 화면(글자판이 올라오면 그 위쪽 영역)의 세로 가운데에 놓는다.
+function placeDlg() {
+  const d = $('dlg');
+  if (!d.open) return;
+  const vv = window.visualViewport;
+  const h = vv ? vv.height : window.innerHeight;
+  const off = vv ? vv.offsetTop : 0;
+  const top = off + Math.max(8, (h - d.offsetHeight) / 2);
+  d.style.setProperty('margin-top', top + 'px', 'important');
+}
+if (window.visualViewport) { visualViewport.addEventListener('resize', placeDlg); visualViewport.addEventListener('scroll', placeDlg); }
+window.addEventListener('resize', placeDlg);
+$('dlg').addEventListener('close', () => $('dlg').style.removeProperty('margin-top'));
 $('eCancel').addEventListener('click', () => $('dlg').close());
 // 일련번호는 키이므로 삭제하지 않는다. 내용만 비우고 '삭제됨'으로 표시한다(금액을 다시 입력하면 복구).
 $('eDel').addEventListener('click', async () => {
