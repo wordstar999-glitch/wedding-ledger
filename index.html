@@ -336,12 +336,12 @@
         <span>금액 <b id="autoAmtText"></b></span>
         <button id="btnAutoAmt" type="button"></button>
       </div>
-      <div class="upd-msg">금액 버튼을 누르면 바로 저장하고, 직접 입력은 1.2초 멈추거나 완료 키를 누르면 저장합니다. 저장 직후 3초 동안 취소할 수 있습니다.</div>
+      <div class="upd-msg">입력 화면에서 금액 버튼을 누르면 자동 저장됩니다.</div>
       <div class="ver">
         <span>이름 <b id="autoText"></b></span>
         <button id="btnAuto" type="button"></button>
       </div>
-      <div class="upd-msg">이름이 비어 있던 항목에 이름을 입력하고 1.2초 동안 입력이 없으면 자동으로 저장하고 다음 빈 항목을 엽니다.</div>
+      <div class="upd-msg">정산 탭에서 해당 번호의 이름을 입력하고 1.2초 후 자동 저장됩니다.</div>
     </div>
   </details>
   <details class="sec" data-k="presets">
@@ -435,7 +435,7 @@
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
-const APP_VERSION = 'v38'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
+const APP_VERSION = 'v39'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
 
