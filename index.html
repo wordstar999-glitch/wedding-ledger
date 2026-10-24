@@ -383,9 +383,10 @@
         <button id="bBackup" type="button" class="fill">백업 저장</button>
         <button id="bRestore" type="button">복원</button>
       </div>
+      <button id="bExport" type="button" class="copy-btn">파일로 내보내기</button>
       <input id="bFile" type="file" accept=".json,application/json" hidden>
       <button id="bReset" type="button" class="danger-btn">새로 시작</button>
-      <div id="bMsg" class="upd-msg" role="status">백업 파일에는 하객 이름·금액이 들어 있습니다. 보관에 주의하세요.</div>
+      <div id="bMsg" class="upd-msg" role="status">내보낸 파일에는 하객 이름·금액이 들어 있습니다. 보관에 주의하세요.</div>
     </div>
   </details>
   <details class="sec" data-k="ver">
@@ -455,7 +456,7 @@
       <summary>설정</summary>
       <div class="sec-body"><ul>
         <li><b>행사 정보</b>에 이름과 날짜를 적어 두세요. 파일 이름에 들어갑니다.</li>
-        <li><b>백업 저장</b>은 장부를 파일로 보관합니다. 행사 중간과 끝에 꼭 눌러 두세요.</li>
+        <li><b>백업 저장</b>은 행사 중간과 끝에 눌러 두세요. 끝나면 <b>파일로 내보내기</b>도 꼭 하세요.</li>
         <li><b>복원</b>하면 지금 장부는 백업 내용으로 바뀝니다.</li>
       </ul></div>
     </details>
@@ -464,7 +465,7 @@
       <div class="sec-body"><ul>
         <li><b>설치</b>는 전달받은 주소를 클릭하면 할 수 있습니다.</li>
         <li><b>인터넷이 없어도</b> 쓸 수 있습니다. 말하기 입력만 인터넷이 필요합니다.</li>
-        <li><b>장부는 이 휴대폰에만</b> 저장됩니다. 앱을 지우면 사라지니 꼭 백업하세요.</li>
+        <li><b>장부는 이 휴대폰에만</b> 저장됩니다. 앱을 지우면 사라지니 파일로 내보내 두세요.</li>
         <li><b>새 버전</b>은 앱을 두 번 열면 적용됩니다.</li>
       </ul></div>
     </details>
@@ -501,7 +502,7 @@
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
-const APP_VERSION = 'v50'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
+const APP_VERSION = 'v51'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
 // '…니다.' 뒤에서 줄을 바꾼다(화면에는 white-space: pre-line으로 표시).
@@ -706,12 +707,13 @@ const hwSet = n => { try { if (n > hwGet()) localStorage.setItem('hw', String(n)
 let autoAmt = true;
 try { autoAmt = localStorage.getItem('autoAmt') !== '0'; } catch {}
 let manualTimer = null, lastAuto = 0, lastUndo = null, undoTimer = null;
-function showUndo(text, fn) {
+function showUndo(text, fn, label = '취소', ms = 3000) {
   lastUndo = fn;
   $('undoText').textContent = text;
+  $('undoBtn').textContent = label;
   $('undoBar').hidden = false;
   clearTimeout(undoTimer);
-  undoTimer = setTimeout(() => { $('undoBar').hidden = true; lastUndo = null; }, 3000);
+  undoTimer = setTimeout(() => { $('undoBar').hidden = true; lastUndo = null; }, ms);
 }
 $('undoBtn').addEventListener('click', async () => {
   const fn = lastUndo;
@@ -998,7 +1000,7 @@ function download(file) {
 $('btnXlsx').addEventListener('click', () => {
   if (!entries.size) return toast('내보낼 내역이 없습니다', true);
   download(makeFile());
-  toast('엑셀 파일 저장');
+  showUndo('엑셀 저장됨. 파일 백업도 받아 두세요.', () => { exportBackupFile(); toast('파일로 내보냈습니다'); }, '내보내기', 7000);
 });
 /* ---------- 탭 ---------- */
 let curTab = 'input';
@@ -1186,14 +1188,18 @@ function makeBackup(kind) {
 }
 const KIND_LABEL = { manual: '백업', 'before-restore': '복원전자동백업', 'before-reset': '초기화전자동백업' };
 const KIND_TEXT = { manual: '수동 백업', 'before-restore': '복원 전 자동 백업', 'before-reset': '초기화 전 자동 백업' };
-function saveBackupFile(kind) {
+// 앱 안 보관함에만 저장한다(파일 다운로드 알림이 뜨지 않음). 너무 커서 저장하지 못하면 예외를 던진다.
+async function saveBackupFile(kind) {
   const obj = makeBackup(kind), text = JSON.stringify(obj, null, 1);
-  const file = new File([text], `${filePrefix()}_${KIND_LABEL[kind]}_${dateForName()}_${stamp()}.json`, { type: 'application/json' });
+  if (text.length > BACKUP_MAX_CHARS) throw new Error('too large');
+  const sm = summarize(sorted());
+  await bkSave({ id: Date.now(), savedAt: obj.savedAt, kind, eventName: obj.event.name, eventDate: obj.event.date, count: sm.count, voided: sm.voided, total: sm.total, maxNo: sm.maxNo, text });
+}
+// 파일로 내보낸다(휴대폰 다운로드 폴더, Chrome의 다운로드 알림이 뜬다).
+function exportBackupFile() {
+  const text = JSON.stringify(makeBackup('manual'), null, 1);
+  const file = new File([text], `${filePrefix()}_백업_${dateForName()}_${stamp()}.json`, { type: 'application/json' });
   download(file);
-  if (text.length <= BACKUP_MAX_CHARS) {
-    const sm = summarize(sorted());
-    bkSave({ id: Date.now(), savedAt: obj.savedAt, kind, eventName: obj.event.name, eventDate: obj.event.date, count: sm.count, voided: sm.voided, total: sm.total, maxNo: sm.maxNo, text }).catch(() => {});
-  }
   return file.name;
 }
 // 복원 파일을 검사해 정제된 데이터를 돌려준다. 문제가 있으면 Error를 던진다.
@@ -1230,10 +1236,16 @@ function refreshAll() {
   $('no').value = Math.max(0, ...entries.keys()) + 1;
   checkDup(); renderAmount(); renderSum();
 }
-$('bBackup').addEventListener('click', () => {
+$('bBackup').addEventListener('click', async () => {
   if (!entries.size) return bMsg('백업할 내역이 없습니다', 'err');
-  const name = saveBackupFile('manual');
-  bMsg(`백업 저장됨: ${name} (다운로드 폴더를 확인하세요)`, 'ok');
+  try { await saveBackupFile('manual'); } catch { return bMsg('백업하지 못했습니다. 파일로 내보내기를 사용하세요.', 'err'); }
+  bMsg('백업했습니다.', 'ok');
+  toast('백업했습니다');
+});
+$('bExport').addEventListener('click', () => {
+  if (!entries.size) return bMsg('내보낼 내역이 없습니다', 'err');
+  exportBackupFile();
+  bMsg('파일로 내보냈습니다.', 'ok');
 });
 $('bRestore').addEventListener('click', async () => { await renderBackupList(); $('bdlg').showModal(); });
 // 복원 전 미리보기: 불러올 백업과 현재 장부를 나란히 보여주고 확인을 받는다.
@@ -1274,8 +1286,7 @@ function confirmRestore(data) {
 async function restoreFrom(data) {
   const live = data.list.filter(e => !e.void).length;
   if (!(await confirmRestore(data))) return bMsg('복원을 취소했습니다');
-  let autoName = '';
-  try { if (entries.size) autoName = saveBackupFile('before-restore'); } catch { return bMsg('현재 내용 백업에 실패해 복원하지 않았습니다', 'err'); }
+  try { if (entries.size) await saveBackupFile('before-restore'); } catch { return bMsg('현재 내용 백업에 실패해 복원하지 않았습니다', 'err'); }
   try { await dbApply([['clear'], ...data.list.map(e => ['put', e])]); } catch { return bMsg('복원 실패: 저장소 오류', 'err'); }
   entries.clear();
   data.list.forEach(e => entries.set(e.no, e));
@@ -1288,7 +1299,7 @@ async function restoreFrom(data) {
   setEvent({ name: data.meta.eventName, date: data.meta.eventDate });
   await fillGaps();
   refreshAll();
-  bMsg(`복원 완료: ${live}건${autoName ? ' (이전 내용은 ' + autoName + ' 로 저장됨)' : ''}`, 'ok');
+  bMsg(`복원했습니다: ${live}건. 이전 내용은 보관함에 백업되었습니다.`, 'ok');
 }
 $('bFile').addEventListener('change', async () => {
   const f = $('bFile').files[0];
@@ -1346,14 +1357,13 @@ $('bdFile').addEventListener('click', () => { $('bdlg').close(); $('bFile').valu
 $('bReset').addEventListener('click', async () => {
   if (!entries.size) return bMsg('초기화할 내역이 없습니다', 'err');
   if (!confirm('현재 내용은 백업되고, 초기화 됩니다.')) return;
-  let name;
-  try { name = saveBackupFile('before-reset'); } catch { return bMsg('현재 내용 백업에 실패해 초기화하지 않았습니다', 'err'); }
+  try { await saveBackupFile('before-reset'); } catch { return bMsg('현재 내용 백업에 실패해 초기화하지 않았습니다', 'err'); }
   try { await dbApply([['clear']]); } catch { return bMsg('초기화 실패: 저장소 오류', 'err'); }
   entries.clear();
   hwReset(0);
   setEvent({ name: '', date: '' });
   refreshAll();
-  bMsg(`초기화되었습니다. 이전 내용은 백업됨(${name}). 새 행사 정보는 행사 정보 항목에서 입력하세요.`, 'ok');
+  bMsg('초기화되었습니다. 이전 내용은 보관함에 백업되었습니다. 새 행사 정보는 행사 정보 항목에서 입력하세요.', 'ok');
 });
 
 /* ---------- 설정: 업데이트 확인 ---------- */
