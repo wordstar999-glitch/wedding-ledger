@@ -42,6 +42,13 @@
   main > * { flex-shrink: 0; }
   #list { flex-shrink: 1 !important; }
 
+  /* 앱 설치 안내(브라우저에서 열었고 설치 가능할 때만 표시) */
+  #installBar { flex: 0 0 auto; display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.75rem; background: var(--accent-bg); border-bottom: 1px solid var(--border); font-size: var(--s); color: var(--text); }
+  #installBar[hidden] { display: none; }
+  #installBar span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+  #installBtn { flex: 0 0 auto; min-height: 2.75rem; padding: 0 1rem; border: 0; border-radius: 0.625rem; background: var(--accent); color: #fff; font-size: var(--t); font-weight: 800; }
+  #installX { flex: 0 0 auto; min-width: 2.75rem; min-height: 2.75rem; border: 0; background: none; color: var(--text2); font-size: var(--t); }
+
   /* 하단 탭 */
   nav { display: flex; border-top: 1px solid var(--border); background: var(--surface); padding-bottom: env(safe-area-inset-bottom); }
   nav button { flex: 1; height: 3.75rem; border: 0; background: none; font-size: var(--t); font-weight: 700; color: var(--text2); }
@@ -229,6 +236,12 @@
 </head>
 <body>
 
+<div id="installBar" hidden>
+  <span>앱으로 설치하면 더 빨리 열려요</span>
+  <button id="installBtn" type="button">앱 설치</button>
+  <button id="installX" type="button" aria-label="닫기">✕</button>
+</div>
+
 <main id="vInput">
   <div class="fit">
     <div class="no-row">
@@ -378,7 +391,7 @@
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
-const APP_VERSION = 'v36'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
+const APP_VERSION = 'v37'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
 
@@ -1150,6 +1163,33 @@ $('btnUpd').addEventListener('click', async () => {
   }
   btn.disabled = false;
 });
+
+/* ---------- 앱 설치 버튼: 브라우저가 설치를 허용하면 한 번 눌러 설치 확인창을 띄운다 ---------- */
+(function () {
+  const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+  let ev = null;
+  const bar = $('installBar');
+  const hide = () => { bar.hidden = true; };
+  let snoozed = false;
+  try { snoozed = Date.now() - Number(localStorage.getItem('installSnooze') || 0) < 7 * 24 * 3600 * 1000; } catch {}
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault();
+    ev = e;
+    if (!standalone && !snoozed) bar.hidden = false;
+  });
+  window.addEventListener('appinstalled', () => { ev = null; hide(); toast('설치되었습니다. 홈 화면의 앱을 열어 주세요'); });
+  $('installBtn').addEventListener('click', async () => {
+    if (!ev) return hide();
+    const p = ev;
+    ev = null;
+    p.prompt();
+    let r = null;
+    try { r = await p.userChoice; } catch {}
+    hide();
+    if (r && r.outcome === 'dismissed') { try { localStorage.setItem('installSnooze', String(Date.now())); } catch {} }
+  });
+  $('installX').addEventListener('click', () => { hide(); try { localStorage.setItem('installSnooze', String(Date.now())); } catch {} });
+})();
 
 /* ---------- 시작 ---------- */
 (async function init() {
