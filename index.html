@@ -83,10 +83,10 @@
   /* 입력 화면: 글자 크기가 클수록 화면을 채우고, 작을수록 전체 칸이 줄어 저장 버튼이 위로 올라온다 */
   .fit { display: flex; flex-direction: column; gap: 0.75rem; height: calc(100% * var(--fs, 1) / 1.15); min-height: min-content; }
   .no-row { display: flex; align-items: stretch; gap: 0.75rem; flex: 1 1 0; min-height: 3rem; }
-  .no-row label { display: flex; align-items: center; font-size: var(--t); font-weight: 700; color: var(--text2); }
+  .no-row label { display: flex; align-items: center; font-size: var(--t); font-weight: 900; color: var(--accent-fg); }
   #no {
-    flex: 1; min-width: 0; font-size: var(--t); font-weight: 800; text-align: center;
-    border: 2px solid var(--border); border-radius: 0.875rem; background: var(--surface);
+    flex: 1; min-width: 0; font-size: var(--t); font-weight: 900; text-align: center;
+    color: var(--accent-fg); border: 2px solid var(--accent); border-radius: 0.875rem; background: var(--accent-bg);
   }
   #no.dup { border-color: var(--danger); color: var(--danger); }
   .amt-disp {
@@ -429,7 +429,7 @@
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
-const APP_VERSION = 'v40'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
+const APP_VERSION = 'v41'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
 
