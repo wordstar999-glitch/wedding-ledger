@@ -398,7 +398,6 @@
       </div>
       <div id="updMsg" class="upd-msg" role="status"></div>
       <div id="instState" class="upd-msg"></div>
-      <button id="btnCopy" type="button" class="copy-btn">설치 안내 문구 복사</button>
     </div>
   </details>
 </main>
@@ -502,7 +501,7 @@
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
-const APP_VERSION = 'v51'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
+const APP_VERSION = 'v52'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
 // '…니다.' 뒤에서 줄을 바꾼다(화면에는 white-space: pre-line으로 표시).
@@ -1415,7 +1414,6 @@ function chromeIntentUrl() {
   const u = new URL(location.href);
   return 'intent://' + u.host + u.pathname + u.search + '#Intent;scheme=https;package=com.android.chrome;end';
 }
-function appBaseUrl() { return location.origin + location.pathname.replace(/index\.html$/, ''); }
 function detectEnv() {
   const ua = navigator.userAgent || '';
   const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
@@ -1479,22 +1477,6 @@ function detectEnv() {
   $('installBtn').addEventListener('click', () => { if (action) action(); else hide(); });
   $('installX').addEventListener('click', snooze);
 })();
-
-// 설치 안내 문구를 복사해서 카카오톡 등으로 보낼 수 있게 한다.
-$('btnCopy').addEventListener('click', async () => {
-  const text = `축의금 장부 앱입니다.\nChrome에서 아래 주소를 열고 '앱 설치'를 눌러 주세요.\n${appBaseUrl()}`;
-  let ok = false;
-  try { await navigator.clipboard.writeText(text); ok = true; } catch {}
-  if (!ok) {
-    const ta = document.createElement('textarea');
-    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
-    document.body.appendChild(ta); ta.select();
-    try { ok = document.execCommand('copy'); } catch {}
-    ta.remove();
-  }
-  toast(ok ? '복사했습니다. 카카오톡에 붙여넣어 보내세요' : '복사하지 못했습니다', !ok);
-});
-
 /* ---------- 시작 ---------- */
 autoBreakIn($('helpBody'));
 document.querySelectorAll('.upd-msg').forEach(autoBreakIn);
