@@ -200,6 +200,12 @@
     <button data-s="1.15" type="button">크게<small>115%</small></button>
   </div>
   <div class="preview">미리보기<br><b>No. 12 · 100,000원</b></div>
+  <p class="set-title">이름 자동 저장</p>
+  <div class="ver">
+    <span id="autoText"></span>
+    <button id="btnAuto" type="button"></button>
+  </div>
+  <div class="upd-msg">이름이 비어 있던 항목에 이름을 입력하고 1.2초 동안 입력이 없으면 자동으로 저장하고 다음 빈 항목을 엽니다.</div>
   <p class="set-title">금액 버튼</p>
   <div class="chips" id="chips"></div>
   <div class="ver">
@@ -248,7 +254,7 @@
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
-const APP_VERSION = 'v9'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
+const APP_VERSION = 'v10'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
 
@@ -495,6 +501,8 @@ function openEdit(no) {
   editing = no;
   $('eNo').value = e.no; $('eName').value = e.name || ''; $('eAmt').value = e.amount; $('eMemo').value = e.memo || '';
   $('dlgErr').textContent = '';
+  clearAuto();
+  autoArmed = !e.name;
   if (!$('dlg').open) $('dlg').showModal();
   setTimeout(() => { $('eName').focus(); $('eName').select(); }, 0);
 }
@@ -524,12 +532,14 @@ async function commitEdit() {
   return no;
 }
 $('eOk').addEventListener('click', async () => {
+  clearAuto();
   if (await commitEdit() === null) return;
   $('dlg').close();
   afterChange();
 });
 // 저장 후, 현재 번호 뒤에서 이름이 비어 있는 항목을 이어서 연다.
 async function saveAndNext() {
+  clearAuto();
   const no = await commitEdit();
   if (no === null) return;
   afterChange();
@@ -538,6 +548,28 @@ async function saveAndNext() {
   else { $('dlg').close(); toast('이름이 비어 있는 다음 항목이 없습니다'); }
 }
 $('eNext').addEventListener('click', saveAndNext);
+
+/* 이름 자동 저장: 이름이 비어 있던 항목에서 입력이 멈추면 저장 후 다음 빈 항목으로 */
+const AUTO_DELAY_MS = 1200;
+let autoOn = true, autoTimer = null, autoArmed = false;
+try { autoOn = localStorage.getItem('auto') !== '0'; } catch {}
+const clearAuto = () => { clearTimeout(autoTimer); autoTimer = null; };
+$('eName').addEventListener('input', () => {
+  clearAuto();
+  if (!autoOn || !autoArmed || !$('eName').value.trim()) return;
+  autoTimer = setTimeout(() => { autoTimer = null; if ($('dlg').open) saveAndNext(); }, AUTO_DELAY_MS);
+});
+['eNo', 'eAmt', 'eMemo'].forEach(id => $(id).addEventListener('input', clearAuto));
+$('dlg').addEventListener('close', clearAuto);
+function renderAuto() {
+  $('autoText').textContent = autoOn ? '켜짐' : '꺼짐';
+  $('btnAuto').textContent = autoOn ? '끄기' : '켜기';
+}
+$('btnAuto').addEventListener('click', () => {
+  autoOn = !autoOn;
+  try { localStorage.setItem('auto', autoOn ? '1' : '0'); } catch {}
+  renderAuto();
+});
 $('dlgForm').addEventListener('submit', e => { e.preventDefault(); saveAndNext(); });
 
 function afterChange() {
@@ -646,6 +678,7 @@ $('btnUpd').addEventListener('click', async () => {
   }
   $('no').value = Math.max(0, ...entries.keys()) + 1;
   renderPresets();
+  renderAuto();
   markSize();
   try {
     const u = sessionStorage.getItem('updated');
