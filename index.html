@@ -205,7 +205,7 @@
     <button data-s="1" type="button">보통<small>100%</small></button>
     <button data-s="1.15" type="button">크게<small>115%</small></button>
   </div>
-  <div class="preview">미리보기<br><b>No. 12 · 100,000원</b></div>
+  <div class="preview">미리보기<br><b>No. 12 · 10만원</b></div>
   <p class="set-title">이름 자동 저장</p>
   <div class="ver">
     <span id="autoText"></span>
@@ -257,7 +257,7 @@
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
-const APP_VERSION = 'v11'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
+const APP_VERSION = 'v12'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
 
@@ -317,7 +317,7 @@ try {
   if (Array.isArray(v) && v.length && v.length <= MAX_PRESETS && v.every(n => Number.isInteger(n) && n > 0 && n <= MAX_AMOUNT)) presets = v;
 } catch {}
 const savePresets = () => { try { localStorage.setItem('presets', JSON.stringify(presets)); } catch {} };
-const presetLabel = n => n < 10000 ? (n % 1000 ? fmt(n) : (n / 1000) + '천') : (n / 10000) + '만';
+const presetLabel = n => fmtMan(n) + '만';
 
 function renderPresets() {
   const box = $('presets');
@@ -383,7 +383,7 @@ $('pReset').addEventListener('click', () => {
 /* ---------- 입력 화면 ---------- */
 function renderAmount() {
   const d = $('amtDisp');
-  d.textContent = amount ? fmt(amount) + '원' : '금액을 선택하세요';
+  d.textContent = amount ? fmtMan(amount) + '만원' : '금액을 선택하세요';
   d.classList.toggle('empty', !amount);
   document.querySelectorAll('#presets button').forEach(b =>
     b.classList.toggle('on', Number(b.dataset.v) === amount && !$('manual').value));
@@ -425,7 +425,7 @@ async function save() {
   }
   saving = false;
   entries.set(no, entry);
-  toast(`No.${no}  ${fmt(amount)}원 저장`);
+  toast(`No.${no}  ${fmtMan(amount)}만원 저장`);
   amount = 0;
   $('manual').value = '';
   $('no').value = nextFree(no + 1);

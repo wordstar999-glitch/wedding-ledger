@@ -43,12 +43,12 @@
   const str = (ref, v, s) => `<c r="${ref}" t="inlineStr"${s ? ` s="${s}"` : ''}><is><t xml:space="preserve">${esc(v)}</t></is></c>`;
   const num = (ref, v, s) => `<c r="${ref}"${s ? ` s="${s}"` : ''}><v>${v}</v></c>`;
 
-  // entries: [{no, name, amount, memo}] -> Blob
+  // entries: [{no, name, amount(원), memo}] -> Blob. 금액 열은 만원 단위로 기록한다.
   function build(entries) {
-    const rows = [`<row r="1">${str('A1', '연번', 1)}${str('B1', '이름', 1)}${str('C1', '금액(원)', 1)}${str('D1', '비고', 1)}</row>`];
+    const rows = [`<row r="1">${str('A1', '연번', 1)}${str('B1', '이름', 1)}${str('C1', '금액(만원)', 1)}${str('D1', '비고', 1)}</row>`];
     entries.forEach((e, i) => {
       const r = i + 2;
-      rows.push(`<row r="${r}">${num('A' + r, e.no)}${str('B' + r, e.name || '')}${num('C' + r, e.amount, 2)}${str('D' + r, e.memo || '')}</row>`);
+      rows.push(`<row r="${r}">${num('A' + r, e.no)}${str('B' + r, e.name || '')}${num('C' + r, Math.round(e.amount / 10000 * 10000) / 10000)}${str('D' + r, e.memo || '')}</row>`);
     });
     const X = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n';
     const files = {
