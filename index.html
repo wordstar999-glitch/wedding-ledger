@@ -82,7 +82,10 @@
     color: var(--accent); font-size: 1.125rem; font-weight: 800;
   }
   .tools button.fill { background: var(--accent); color: #fff; }
-  #q {
+  .srch { display: flex; gap: 8px; }
+  #fNo { flex: 0 0 auto; height: 3.25rem; padding: 0 .9rem; border-radius: 12px; border: 2px solid var(--border); background: var(--surface); font-size: 1rem; font-weight: 800; }
+  #fNo.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+  #q { flex: 1; min-width: 0;
     height: 3.25rem; padding: 0 0.875rem; font-size: 1.125rem; border: 2px solid var(--border); border-radius: 0.75rem; background: var(--surface);
   }
   #q:focus { outline: none; border-color: var(--accent); }
@@ -110,7 +113,9 @@
   dialog .btns { display: flex; gap: 0.5rem; margin-top: 1rem; }
   dialog .btns button { flex: 1; height: 3.5rem; border-radius: 0.75rem; border: 2px solid var(--border); background: var(--surface); font-weight: 800; }
   dialog .btns .del { border-color: var(--danger); color: var(--danger); }
-  dialog .btns .ok { background: var(--accent); border-color: var(--accent); color: #fff; }
+  dialog .next { width: 100%; height: 3.75rem; margin-top: 1rem; border-radius: 12px; border: 2px solid var(--accent); font-size: 1.25rem; font-weight: 800; }
+  dialog .btns { margin-top: .5rem !important; }
+  dialog .ok { background: var(--accent); border-color: var(--accent); color: #fff; }
   #dlgErr { color: var(--danger); min-height: 1.375rem; font-size: 0.9375rem; margin-top: 0.5rem; }
 
   #toast {
@@ -153,7 +158,7 @@
   .upd-msg.ok { color: var(--ok); font-weight: 700; }
   .preview b { color: var(--text); font-size: 1.5rem; }
 </style>
-<script>try{var f=localStorage.getItem("fs");if(f)document.documentElement.style.setProperty("--fs",f)}catch(e){}</script>
+<script>try{var f=parseFloat(localStorage.getItem("fs"));if(f){f=Math.min(1.15,Math.max(0.7,f));document.documentElement.style.setProperty("--fs",f)}}catch(e){}</script>
 </head>
 <body>
 
@@ -181,17 +186,20 @@
     <button id="btnXlsx" type="button" class="fill">엑셀 저장</button>
     <button id="btnShare" type="button">공유</button>
   </div>
-  <input id="q" type="search" placeholder="번호·이름 검색" aria-label="검색">
+  <div class="srch">
+    <input id="q" type="search" placeholder="번호·이름 검색" aria-label="검색">
+    <button id="fNo" type="button" aria-pressed="false">이름 없음 <b id="fNoN">0</b></button>
+  </div>
   <ul id="list"></ul>
 </main>
 
 <main id="vSet" hidden>
   <p class="set-title">글자 크기</p>
   <div class="sizes" id="sizes">
+    <button data-s="0.7" type="button">아주 작게<small>70%</small></button>
     <button data-s="0.85" type="button">작게<small>85%</small></button>
     <button data-s="1" type="button">보통<small>100%</small></button>
     <button data-s="1.15" type="button">크게<small>115%</small></button>
-    <button data-s="1.3" type="button">아주 크게<small>130%</small></button>
   </div>
   <div class="preview">미리보기<br><b>No. 12 · 100,000원</b></div>
   <p class="set-title">금액 버튼</p>
@@ -222,16 +230,17 @@
     <label for="eNo">번호</label>
     <input id="eNo" type="number" inputmode="numeric" min="1" step="1">
     <label for="eName">이름</label>
-    <input id="eName" type="text" maxlength="40" autocomplete="off">
+    <input id="eName" type="text" maxlength="40" lang="ko" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="next">
     <label for="eAmt">금액(원)</label>
     <input id="eAmt" type="number" inputmode="numeric" min="1" step="1">
     <label for="eMemo">비고</label>
     <input id="eMemo" type="text" maxlength="100" autocomplete="off">
     <div id="dlgErr" role="alert"></div>
+    <button type="button" class="ok next" id="eNext">저장 후 다음</button>
     <div class="btns">
       <button type="button" class="del" id="eDel">삭제</button>
       <button type="button" id="eCancel">취소</button>
-      <button type="button" class="ok" id="eOk">저장</button>
+      <button type="button" id="eOk">저장</button>
     </div>
   </form>
 </dialog>
@@ -241,7 +250,7 @@
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
-const APP_VERSION = 'v4'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
+const APP_VERSION = 'v5'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
 
@@ -419,18 +428,23 @@ async function save() {
 $('save').addEventListener('click', save);
 
 /* ---------- 정산 화면 ---------- */
+let noNameOnly = false;
 function renderSum() {
   const all = sorted();
   $('tCount').textContent = fmt(all.length) + '건';
   $('tSum').textContent = fmt(all.reduce((s, e) => s + e.amount, 0)) + '원';
   const q = $('q').value.trim().toLowerCase();
-  const rows = q ? all.filter(e => String(e.no) === q || (e.name || '').toLowerCase().includes(q) || (e.memo || '').toLowerCase().includes(q)) : all;
+  $('fNoN').textContent = all.filter(e => !e.name).length;
+  $('fNo').classList.toggle('on', noNameOnly);
+  $('fNo').setAttribute('aria-pressed', noNameOnly);
+  const base = noNameOnly ? all.filter(e => !e.name) : all;
+  const rows = q ? base.filter(e => String(e.no) === q || (e.name || '').toLowerCase().includes(q) || (e.memo || '').toLowerCase().includes(q)) : base;
   const ul = $('list');
   ul.textContent = '';
   if (!rows.length) {
     const li = document.createElement('div');
     li.className = 'empty-msg';
-    li.textContent = all.length ? '검색 결과가 없습니다' : '저장된 내역이 없습니다';
+    li.textContent = !all.length ? '저장된 내역이 없습니다' : noNameOnly && !q ? '이름이 비어 있는 항목이 없습니다' : '검색 결과가 없습니다';
     ul.appendChild(li);
     return;
   }
@@ -449,6 +463,7 @@ function renderSum() {
   ul.appendChild(frag);
 }
 $('q').addEventListener('input', renderSum);
+$('fNo').addEventListener('click', () => { noNameOnly = !noNameOnly; renderSum(); });
 $('list').addEventListener('click', e => {
   const li = e.target.closest('li');
   if (li) openEdit(Number(li.dataset.no));
@@ -462,7 +477,8 @@ function openEdit(no) {
   editing = no;
   $('eNo').value = e.no; $('eName').value = e.name || ''; $('eAmt').value = e.amount; $('eMemo').value = e.memo || '';
   $('dlgErr').textContent = '';
-  $('dlg').showModal();
+  if (!$('dlg').open) $('dlg').showModal();
+  setTimeout(() => { $('eName').focus(); $('eName').select(); }, 0);
 }
 $('eCancel').addEventListener('click', () => $('dlg').close());
 $('eDel').addEventListener('click', async () => {
@@ -473,11 +489,12 @@ $('eDel').addEventListener('click', async () => {
   afterChange();
   toast('삭제됨');
 });
-$('eOk').addEventListener('click', async () => {
+// 수정 내용을 저장한다. 성공하면 저장된 번호를, 실패하면 null을 반환한다(다이얼로그는 닫지 않음).
+async function commitEdit() {
   const old = entries.get(editing);
   const no = parseInt($('eNo').value, 10), amt = parseInt($('eAmt').value, 10);
-  const err = m => ($('dlgErr').textContent = m);
-  if (!old) return;
+  const err = m => { $('dlgErr').textContent = m; return null; };
+  if (!old) return err('항목을 찾을 수 없습니다');
   if (!(no >= 1)) return err('번호를 확인하세요');
   if (!(amt > 0)) return err('금액을 확인하세요');
   if (no !== editing && entries.has(no)) return err(`No.${no}은(는) 이미 사용 중입니다`);
@@ -486,9 +503,25 @@ $('eOk').addEventListener('click', async () => {
   try { await dbApply(ops); } catch { return err('저장 실패'); }
   entries.delete(editing);
   entries.set(no, next);
+  return no;
+}
+$('eOk').addEventListener('click', async () => {
+  if (await commitEdit() === null) return;
   $('dlg').close();
   afterChange();
 });
+// 저장 후, 현재 번호 뒤에서 이름이 비어 있는 항목을 이어서 연다.
+async function saveAndNext() {
+  const no = await commitEdit();
+  if (no === null) return;
+  afterChange();
+  const next = sorted().find(e => e.no > no && !e.name);
+  if (next) { toast(`No.${no} 저장`); openEdit(next.no); }
+  else { $('dlg').close(); toast('이름이 비어 있는 다음 항목이 없습니다'); }
+}
+$('eNext').addEventListener('click', saveAndNext);
+$('dlgForm').addEventListener('submit', e => { e.preventDefault(); saveAndNext(); });
+
 function afterChange() {
   renderSum();
   $('no').value = nextFree(parseInt($('no').value, 10) || 1);
