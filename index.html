@@ -183,6 +183,11 @@
   .sec > summary::-webkit-details-marker { display: none; }
   .sec > summary::after { content: '▾'; color: var(--text2); transition: transform .15s; }
   .sec[open] > summary::after { transform: rotate(180deg); }
+  /* 열린 항목은 제목을 진한 색으로 채우고 본문 바탕을 다르게 해서 닫힌 항목과 구분한다 */
+  .sec[open] { border-color: var(--accent); background: var(--accent-bg); }
+  .sec[open] > summary { background: var(--accent); color: #fff; border-radius: calc(0.875rem - 2px) calc(0.875rem - 2px) 0 0; }
+  .sec[open] > summary::after { color: #fff; }
+  .sec[open] .sec-body { padding-top: 0.9rem; }
   .sec-body { display: flex; flex-direction: column; gap: 0.75rem; padding: 0 0.9rem 0.9rem; }
   .set-title { font-size: var(--t); font-weight: 800; margin: 4px 0 0; }
   .sizes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -371,7 +376,7 @@
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
-const APP_VERSION = 'v34'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
+const APP_VERSION = 'v35'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
 
