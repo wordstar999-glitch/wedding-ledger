@@ -377,8 +377,8 @@
         <button id="bRestore" type="button">복원</button>
       </div>
       <input id="bFile" type="file" accept=".json,application/json" hidden>
-      <button id="bReset" type="button" class="danger-btn">새로 시작 (모든 내역 초기화)</button>
-      <div id="bMsg" class="upd-msg" role="status">백업 파일(JSON)에는 하객 이름·금액이 그대로 들어 있습니다. 보관과 전달에 주의하세요.</div>
+      <button id="bReset" type="button" class="danger-btn">새로 시작</button>
+      <div id="bMsg" class="upd-msg" role="status">백업 파일에는 하객 이름·금액이 들어 있습니다. 보관에 주의하세요.</div>
     </div>
   </details>
   <details class="sec" data-k="ver">
@@ -453,7 +453,7 @@
         <li><b>자동 저장</b>: 금액 버튼 자동 저장, 이름 입력 후 자동 저장을 켜고 끕니다.</li>
         <li><b>금액 버튼</b>: 금액을 추가하거나(만원 단위) 삭제합니다. 최대 9개이며 기본값으로 되돌릴 수 있습니다.</li>
         <li><b>백업·복원</b>: 백업 저장은 파일로 내려받고 앱 안 보관함에도 최근 10개를 보관합니다. 복원은 보관함 또는 파일에서 고르며, 미리보기로 확인한 뒤 현재 장부를 교체합니다(복원 전 현재 장부는 자동 백업).</li>
-        <li><b>새로 시작</b>: 모든 내역을 지우고 No.1부터 다시 시작합니다. 직전 내용은 자동 백업됩니다.</li>
+        <li><b>새로 시작</b>: 현재 내용을 백업한 뒤 모든 내역을 지우고 No.1부터 다시 시작합니다. 행사 정보도 비워지니 새로 입력하세요.</li>
         <li><b>앱 버전</b>: 업데이트 확인으로 새 버전을 바로 적용합니다.</li>
       </ul></div>
     </details>
@@ -499,7 +499,7 @@
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
-const APP_VERSION = 'v42'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
+const APP_VERSION = 'v43'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
 
@@ -1320,21 +1320,15 @@ $('bdFile').addEventListener('click', () => { $('bdlg').close(); $('bFile').valu
 
 $('bReset').addEventListener('click', async () => {
   if (!entries.size) return bMsg('초기화할 내역이 없습니다', 'err');
-  const live = [...entries.values()].filter(e => !e.void).length;
-  const ans = prompt(`저장된 ${live}건과 모든 번호가 삭제되고 No.1부터 다시 시작합니다.\n(금액 버튼·글자 크기 설정은 유지됩니다)\n현재 내용은 자동으로 백업 파일로 저장됩니다.\n\n계속하려면 "초기화"를 입력하세요.`);
-  if (ans === null) return;
-  if (ans.trim() !== '초기화') return bMsg('입력이 달라 초기화하지 않았습니다', 'err');
+  if (!confirm('현재 내용은 백업되고, 초기화 됩니다.')) return;
   let name;
   try { name = saveBackupFile('before-reset'); } catch { return bMsg('현재 내용 백업에 실패해 초기화하지 않았습니다', 'err'); }
   try { await dbApply([['clear']]); } catch { return bMsg('초기화 실패: 저장소 오류', 'err'); }
   entries.clear();
   hwReset(0);
-  // 새 행사 정보를 받는다(취소하면 비워 둔다. 설정의 '행사 정보'에서 나중에 입력할 수 있다).
-  const newName = prompt('새 행사 이름을 입력하세요 (비워 두어도 됩니다)', '');
-  const dateIn = newName === null ? null : prompt('행사 날짜를 입력하세요 (예: ' + ymd(new Date()) + ')', ymd(new Date()));
-  setEvent({ name: newName || '', date: validDate((dateIn || '').trim()) ? dateIn.trim() : '' });
+  setEvent({ name: '', date: '' });
   refreshAll();
-  bMsg(`초기화 완료. 이전 내용은 ${name} 로 저장됨`, 'ok');
+  bMsg(`초기화되었습니다. 이전 내용은 백업됨(${name}). 새 행사 정보는 행사 정보 항목에서 입력하세요.`, 'ok');
 });
 
 /* ---------- 설정: 업데이트 확인 ---------- */
