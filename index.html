@@ -187,7 +187,7 @@
   #list li.void { opacity: .6; }
   .erow input[type=number] { -moz-appearance: textfield; appearance: textfield; }
   .erow input::-webkit-outer-spin-button, .erow input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-  dialog .mic { width: 100%; min-height: 3.25rem; margin-top: .5rem; border-radius: 12px; border: 2px solid var(--accent); background: var(--accent-bg); color: var(--accent-fg); font-size: var(--t); font-weight: 800; }
+  dialog .mic { width: 100%; min-height: 3.25rem; margin-top: .5rem; border-radius: 12px; border: 2px solid var(--comp-line); background: var(--comp-bg); color: var(--comp-text); font-size: var(--t); font-weight: 900; }
   dialog .mic.on { background: var(--danger); border-color: var(--danger); color: #fff; animation: pulse 1s infinite; }
   @keyframes pulse { 50% { opacity: .7; } }
   dialog .next { width: 100%; height: 3.75rem; margin-top: 1rem; border-radius: 12px; border: 2px solid var(--accent); font-size: var(--t); font-weight: 800; }
@@ -501,7 +501,7 @@
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
-const APP_VERSION = 'v55'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
+const APP_VERSION = 'v56'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
 // '…니다.' 뒤에서 줄을 바꾼다(화면에는 white-space: pre-line으로 표시).
