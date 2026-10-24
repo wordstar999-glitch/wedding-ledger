@@ -147,10 +147,12 @@
     color: var(--accent-fg); font-size: var(--t); font-weight: 800;
   }
   .tools button.fill { background: var(--accent); color: var(--on-accent); }
+  /* 한글 글자가 칸 안에서 약간 아래로 쳐져 보이는 것을 보정한다 */
+  .tools button, #fNo { padding-bottom: calc(var(--t) * 0.12); }
   .srch-cap { font-size: var(--s); font-weight: 800; color: var(--strong); margin-bottom: -0.25rem; }
   #q::placeholder { color: var(--strong); font-weight: 800; opacity: 1; }
   .srch { display: grid; grid-template-columns: 1fr 1fr; gap: 0.625rem; }
-  #fNo { width: 100%; min-width: 0; min-height: 3.25rem; padding: 0 .4rem; white-space: nowrap; border-radius: 12px; border: 2px solid var(--border); background: var(--surface); color: var(--text); font-size: var(--t); font-weight: 800; }
+  #fNo { width: 100%; min-width: 0; min-height: 3.25rem; padding: 0 .4rem calc(var(--t) * 0.12); white-space: nowrap; border-radius: 12px; border: 2px solid var(--border); background: var(--surface); color: var(--text); font-size: var(--t); font-weight: 800; }
   #fNo.on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
   .tools #fDup { flex: 1; min-height: 3.5rem; white-space: nowrap; border-color: var(--comp-line); background: var(--surface); color: var(--comp-text); }
   .tools #fDup.on { background: var(--comp-text); border-color: var(--comp-text); color: var(--surface); }
@@ -523,7 +525,7 @@
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
-const APP_VERSION = 'v68'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
+const APP_VERSION = 'v69'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
 // '…니다.' 뒤에서 줄을 바꾼다(화면에는 white-space: pre-line으로 표시).
