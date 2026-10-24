@@ -193,9 +193,12 @@
   dialog .next { width: 100%; height: 3.75rem; margin-top: 1rem; border-radius: 12px; border: 2px solid var(--accent); font-size: var(--t); font-weight: 800; }
   dialog .btns { margin-top: .4rem !important; }
   /* 수정 팝업은 화면 위쪽에 붙여서 글자판이 올라와도 삭제·취소·저장 버튼이 보이게 한다 */
-  #dlg { margin: 0.25rem auto auto !important; }
+  #dlg { margin: clamp(0.75rem, 6vh, 3.5rem) auto auto !important; }
+  #dlgForm { display: flex; flex-direction: column; min-height: 16rem; }
+  #dlgForm .mic { margin-top: auto; margin-bottom: auto; }
   dialog .btns .ok { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
-  #dlgErr { color: var(--danger); min-height: 1.375rem; font-size: var(--s); margin-top: 0.5rem; }
+  #dlgErr { color: var(--danger); font-size: var(--s); margin: 0.25rem 0; }
+  #dlgErr:empty { display: none; }
 
   #toast {
     position: fixed; left: 50%; bottom: 6.25rem; transform: translateX(-50%); max-width: 90vw;
@@ -514,7 +517,7 @@
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
-const APP_VERSION = 'v59'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
+const APP_VERSION = 'v60'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
 // '…니다.' 뒤에서 줄을 바꾼다(화면에는 white-space: pre-line으로 표시).
