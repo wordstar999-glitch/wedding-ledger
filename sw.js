@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gift-v73';
+const CACHE_NAME = 'gift-v74';
 const ASSETS = ['./', './index.html', './xlsx.js', './manifest.json', './icon-192.png', './icon-512.png'];
 // 저장된 파일을 즉시 보여주고(앱이 바로 열림), 새 파일은 뒤에서 받아 다음에 열 때 적용한다.
 // 저장된 파일이 없을 때만 네트워크를 기다린다.
