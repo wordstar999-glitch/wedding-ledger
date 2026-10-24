@@ -159,7 +159,17 @@
   .fld input { min-height: 3.25rem; padding: 0 .75rem; font-size: var(--t); border: 2px solid var(--border); border-radius: 12px; background: var(--bg); color: var(--text); }
   .fld input:focus { outline: none; border-color: var(--accent); }
   .ev-line { text-align: center; font-size: var(--s); color: var(--text2); overflow-wrap: anywhere; }
-  #rdlg { width: min(96vw, 520px); }
+  #rdlg, #bdlg { width: min(96vw, 520px); }
+  .bd-list { display: flex; flex-direction: column; gap: 0.5rem; max-height: 55vh; overflow-y: auto; margin-bottom: .5rem; }
+  .bd-item { border: 2px solid var(--border); border-radius: 0.75rem; padding: 0.6rem 0.75rem; display: flex; flex-direction: column; gap: 0.25rem; }
+  .bd-item b { font-size: var(--t); overflow-wrap: anywhere; }
+  .bd-item .meta { font-size: var(--s); color: var(--text2); overflow-wrap: anywhere; }
+  .bd-item .row { display: flex; gap: 0.5rem; margin-top: 0.25rem; }
+  .bd-item .row button { flex: 1; min-height: 3rem; border-radius: 0.625rem; border: 2px solid var(--border); background: var(--surface); font-size: var(--t); font-weight: 800; color: var(--text); }
+  .bd-item .row .go { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .bd-item .row .rm { color: var(--danger); border-color: var(--danger); flex: 0 0 auto; padding: 0 1rem; }
+  #bdlg .btns { display: flex; gap: 8px; margin-top: .5rem; }
+  #bdlg .btns button { flex: 1; min-height: 3.5rem; border-radius: 0.75rem; border: 2px solid var(--border); background: var(--surface); font-size: var(--t); font-weight: 800; color: var(--text); }
   .rd-title { margin: 0 0 .5rem; font-size: var(--t); font-weight: 800; }
   .rd-table { width: 100%; border-collapse: collapse; font-size: var(--s); }
   .rd-table th, .rd-table td { padding: .4rem .3rem; border-bottom: 1px solid var(--border); text-align: left; vertical-align: top; overflow-wrap: anywhere; }
@@ -337,6 +347,16 @@
   </form>
 </dialog>
 
+<dialog id="bdlg">
+  <p class="rd-title">백업 보관함 (최근 10개)</p>
+  <div id="bdList" class="bd-list"></div>
+  <div class="upd-msg">앱 데이터를 지우거나 앱을 삭제하면 보관함도 함께 사라집니다. 파일 백업도 따로 보관하세요.</div>
+  <div class="btns">
+    <button type="button" id="bdFile">파일에서 선택</button>
+    <button type="button" id="bdClose">닫기</button>
+  </div>
+</dialog>
+
 <dialog id="rdlg">
   <p class="rd-title">복원할 백업 확인</p>
   <table class="rd-table" id="rdTable"></table>
@@ -352,7 +372,7 @@
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
-const APP_VERSION = 'v32'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
+const APP_VERSION = 'v33'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
 
@@ -360,8 +380,12 @@ const fmt = n => n.toLocaleString('ko-KR');
 const DB_NAME = 'gift-ledger', STORE = 'entries';
 let dbp;
 const openDB = () => dbp || (dbp = new Promise((res, rej) => {
-  const r = indexedDB.open(DB_NAME, 1);
-  r.onupgradeneeded = () => r.result.createObjectStore(STORE, { keyPath: 'no' });
+  const r = indexedDB.open(DB_NAME, 2);
+  r.onupgradeneeded = () => {
+    const db = r.result;
+    if (!db.objectStoreNames.contains(STORE)) db.createObjectStore(STORE, { keyPath: 'no' });
+    if (!db.objectStoreNames.contains('backups')) db.createObjectStore('backups', { keyPath: 'id' });
+  };
   r.onsuccess = () => res(r.result);
   r.onerror = () => rej(r.error);
 }));
@@ -375,6 +399,24 @@ async function dbApply(ops) {
     tx.oncomplete = () => res();
     tx.onerror = tx.onabort = () => rej(tx.error);
   });
+}
+// 백업 보관함(앱 안): 최근 BACKUP_KEEP개만 보관한다.
+const BACKUP_KEEP = 10, BACKUP_MAX_CHARS = 3 * 1024 * 1024;
+async function bkTx(mode, fn) {
+  const db = await openDB();
+  return new Promise((res, rej) => {
+    const tx = db.transaction('backups', mode);
+    const out = fn(tx.objectStore('backups'));
+    tx.oncomplete = () => res(out && out.result !== undefined ? out.result : undefined);
+    tx.onerror = tx.onabort = () => rej(tx.error);
+  });
+}
+const bkAll = () => bkTx('readonly', os => os.getAll()).then(a => (a || []).sort((x, y) => y.id - x.id));
+const bkDel = id => bkTx('readwrite', os => os.delete(id));
+async function bkSave(rec) {
+  await bkTx('readwrite', os => os.put(rec));
+  const all = await bkAll();
+  for (const old of all.slice(BACKUP_KEEP)) await bkDel(old.id);
 }
 async function dbAll() {
   const db = await openDB();
@@ -887,8 +929,13 @@ function makeBackup(kind) {
 const KIND_LABEL = { manual: '백업', 'before-restore': '복원전자동백업', 'before-reset': '초기화전자동백업' };
 const KIND_TEXT = { manual: '수동 백업', 'before-restore': '복원 전 자동 백업', 'before-reset': '초기화 전 자동 백업' };
 function saveBackupFile(kind) {
-  const file = new File([JSON.stringify(makeBackup(kind), null, 1)], `${filePrefix()}_${KIND_LABEL[kind]}_${dateForName()}_${stamp()}.json`, { type: 'application/json' });
+  const obj = makeBackup(kind), text = JSON.stringify(obj, null, 1);
+  const file = new File([text], `${filePrefix()}_${KIND_LABEL[kind]}_${dateForName()}_${stamp()}.json`, { type: 'application/json' });
   download(file);
+  if (text.length <= BACKUP_MAX_CHARS) {
+    const sm = summarize(sorted());
+    bkSave({ id: Date.now(), savedAt: obj.savedAt, kind, eventName: obj.event.name, eventDate: obj.event.date, count: sm.count, voided: sm.voided, total: sm.total, maxNo: sm.maxNo, text }).catch(() => {});
+  }
   return file.name;
 }
 // 복원 파일을 검사해 정제된 데이터를 돌려준다. 문제가 있으면 Error를 던진다.
@@ -930,7 +977,7 @@ $('bBackup').addEventListener('click', () => {
   const name = saveBackupFile('manual');
   bMsg(`백업 저장됨: ${name} (다운로드 폴더를 확인하세요)`, 'ok');
 });
-$('bRestore').addEventListener('click', () => { $('bFile').value = ''; $('bFile').click(); });
+$('bRestore').addEventListener('click', async () => { await renderBackupList(); $('bdlg').showModal(); });
 // 복원 전 미리보기: 불러올 백업과 현재 장부를 나란히 보여주고 확인을 받는다.
 function confirmRestore(data) {
   const cur = summarize(sorted()), bk = summarize(data.list), curEv = getEvent();
@@ -965,12 +1012,8 @@ function confirmRestore(data) {
     $('rdlg').showModal();
   });
 }
-$('bFile').addEventListener('change', async () => {
-  const f = $('bFile').files[0];
-  if (!f) return;
-  if (f.size > MAX_BACKUP_BYTES) return bMsg('파일이 너무 큽니다', 'err');
-  let data;
-  try { data = parseBackup(await f.text()); } catch (e) { return bMsg('복원 실패: ' + e.message, 'err'); }
+// 검증된 백업 데이터로 복원한다(미리보기 확인 → 현재 장부 자동 백업 → 교체).
+async function restoreFrom(data) {
   const live = data.list.filter(e => !e.void).length;
   if (!(await confirmRestore(data))) return bMsg('복원을 취소했습니다');
   let autoName = '';
@@ -986,7 +1029,60 @@ $('bFile').addEventListener('change', async () => {
   await fillGaps();
   refreshAll();
   bMsg(`복원 완료: ${live}건${autoName ? ' (이전 내용은 ' + autoName + ' 로 저장됨)' : ''}`, 'ok');
+}
+$('bFile').addEventListener('change', async () => {
+  const f = $('bFile').files[0];
+  if (!f) return;
+  if (f.size > MAX_BACKUP_BYTES) return bMsg('파일이 너무 큽니다', 'err');
+  let data;
+  try { data = parseBackup(await f.text()); } catch (e) { return bMsg('복원 실패: ' + e.message, 'err'); }
+  await restoreFrom(data);
 });
+
+// 앱 안 백업 보관함: 목록에서 골라 복원한다.
+async function renderBackupList() {
+  const box = $('bdList');
+  box.textContent = '';
+  let items = [];
+  try { items = await bkAll(); } catch {}
+  if (!items.length) {
+    const d = document.createElement('div');
+    d.className = 'upd-msg';
+    d.textContent = '보관된 백업이 없습니다. 백업을 저장하면 여기에 쌓입니다. 외부 파일은 아래 [파일에서 선택]으로 불러오세요.';
+    box.appendChild(d);
+    return;
+  }
+  items.forEach(it => {
+    const card = document.createElement('div');
+    card.className = 'bd-item';
+    const t = document.createElement('b');
+    t.textContent = it.eventName || '(행사 이름 없음)';
+    const m1 = document.createElement('div'); m1.className = 'meta';
+    m1.textContent = `행사 ${it.eventDate || '날짜 미입력'} · ${KIND_TEXT[it.kind] || '백업'}`;
+    const m2 = document.createElement('div'); m2.className = 'meta';
+    m2.textContent = `저장 ${ymdhm(new Date(it.savedAt))} · ${it.count}건 · ${fmtMan(it.total)}만원` + (it.voided ? ` · 삭제됨 ${it.voided}` : '');
+    const row = document.createElement('div'); row.className = 'row';
+    const go = document.createElement('button'); go.type = 'button'; go.className = 'go'; go.textContent = '복원';
+    const rm = document.createElement('button'); rm.type = 'button'; rm.className = 'rm'; rm.textContent = '삭제';
+    go.onclick = async () => {
+      let data;
+      try { data = parseBackup(it.text); } catch (e) { return bMsg('복원 실패: ' + e.message, 'err'); }
+      $('bdlg').close();
+      await restoreFrom(data);
+    };
+    rm.onclick = async () => {
+      if (!confirm('이 백업을 보관함에서 삭제할까요?\n(다운로드된 파일은 지워지지 않습니다)')) return;
+      try { await bkDel(it.id); } catch {}
+      renderBackupList();
+    };
+    row.append(go, rm);
+    card.append(t, m1, m2, row);
+    box.appendChild(card);
+  });
+}
+$('bdClose').addEventListener('click', () => $('bdlg').close());
+$('bdFile').addEventListener('click', () => { $('bdlg').close(); $('bFile').value = ''; $('bFile').click(); });
+
 $('bReset').addEventListener('click', async () => {
   if (!entries.size) return bMsg('초기화할 내역이 없습니다', 'err');
   const live = [...entries.values()].filter(e => !e.void).length;

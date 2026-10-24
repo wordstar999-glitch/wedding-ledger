@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gift-v32';
+const CACHE_NAME = 'gift-v33';
 const ASSETS = ['./', './index.html', './xlsx.js', './manifest.json', './icon-192.png', './icon-512.png'];
 // 온라인이면 항상 서버의 최신 파일을 받고(HTTP 캐시 우회), 오프라인이거나 응답이 느리면 캐시를 쓴다.
 const NET_TIMEOUT_MS = 2500;
