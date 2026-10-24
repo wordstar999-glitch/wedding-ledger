@@ -326,7 +326,6 @@
     <div class="sec-body">
       <label class="fld">행사 이름<input id="evName" type="text" maxlength="30" autocomplete="off" placeholder="예: 철수영희"></label>
       <label class="fld">행사 날짜<input id="evDate" type="date"></label>
-      <div class="upd-msg">백업·엑셀 파일 이름, 정산 화면, 복원 미리보기에 표시됩니다. 여러 행사를 구분하는 데 사용하세요.</div>
     </div>
   </details>
   <details class="sec" data-k="size">
@@ -345,7 +344,6 @@
     <summary>화면 색상</summary>
     <div class="sec-body">
       <div class="swatches" id="swatches"></div>
-      <div class="upd-msg">입력·정산·설정 화면 전체에 적용됩니다. 삭제·오류 표시는 빨간색을 유지합니다.</div>
     </div>
   </details>
   <details class="sec" data-k="auto">
@@ -443,27 +441,18 @@
     <details class="sec" data-h="sum">
       <summary>정산</summary>
       <div class="sec-body"><ul>
-        <li><b>총 건수</b>와 <b>총 금액</b>을 한눈에 볼 수 있습니다.</li>
-        <li><b>이름 검색</b>은 이름이나 초성(ㄱㅊㅅ)으로 찾습니다.</li>
-        <li><b>이름 없음</b>을 누르면 이름이 비어 있는 것만 보입니다.</li>
         <li><b>항목을 누르면</b> 이름·금액·비고를 고칠 수 있습니다.</li>
-        <li><b>말하기로 이름 입력</b>을 누르고 이름을 말하면 입력됩니다. 인터넷이 필요합니다.</li>
+        <li><b>말하기 입력</b>은 인터넷이 필요합니다.</li>
         <li><b>이름을 입력</b>하면 1.2초 뒤 자동 저장되고 다음 빈 항목이 열립니다.</li>
         <li><b>삭제</b>해도 번호는 남습니다. 금액을 다시 입력하면 되살아납니다.</li>
-        <li><b>엑셀 저장</b>을 누르면 파일이 만들어집니다.</li>
       </ul></div>
     </details>
     <details class="sec" data-h="set">
       <summary>설정</summary>
       <div class="sec-body"><ul>
         <li><b>행사 정보</b>에 이름과 날짜를 적어 두세요. 파일 이름에 들어갑니다.</li>
-        <li><b>글자 크기</b>와 <b>화면 색상</b>을 바꿀 수 있습니다.</li>
-        <li><b>자동 저장</b>은 켜고 끌 수 있습니다.</li>
-        <li><b>금액 버튼</b>은 자주 쓰는 금액으로 추가하거나 지웁니다.</li>
         <li><b>백업 저장</b>은 장부를 파일로 보관합니다. 행사 중간과 끝에 꼭 눌러 두세요.</li>
-        <li><b>복원</b>은 백업을 불러옵니다. 지금 장부는 백업 내용으로 바뀝니다.</li>
-        <li><b>새로 시작</b>은 지금 내용을 백업하고 처음부터 시작합니다.</li>
-        <li><b>업데이트 확인</b>을 누르면 새 버전이 바로 적용됩니다.</li>
+        <li><b>복원</b>하면 지금 장부는 백업 내용으로 바뀝니다.</li>
       </ul></div>
     </details>
     <details class="sec" data-h="etc">
@@ -481,7 +470,7 @@
 <dialog id="bdlg">
   <p class="rd-title">백업 보관함 (최근 10개)</p>
   <div id="bdList" class="bd-list"></div>
-  <div class="upd-msg">앱 데이터를 지우거나 앱을 삭제하면 보관함도 함께 사라집니다. 파일 백업도 따로 보관하세요.</div>
+  <div class="upd-msg">앱을 지우면 보관함도 사라집니다. 파일 백업도 따로 보관하세요.</div>
   <div class="btns">
     <button type="button" id="bdFile">파일에서 선택</button>
     <button type="button" id="bdClose">닫기</button>
@@ -508,7 +497,7 @@
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
-const APP_VERSION = 'v46'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
+const APP_VERSION = 'v47'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
 // '…니다.' 뒤에서 줄을 바꾼다(화면에는 white-space: pre-line으로 표시).
@@ -1307,7 +1296,7 @@ async function renderBackupList() {
   if (!items.length) {
     const d = document.createElement('div');
     d.className = 'upd-msg';
-    d.textContent = '보관된 백업이 없습니다. 백업을 저장하면 여기에 쌓입니다. 외부 파일은 아래 [파일에서 선택]으로 불러오세요.';
+    d.textContent = '보관된 백업이 없습니다.';
     box.appendChild(d);
     return;
   }
