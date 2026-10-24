@@ -1,7 +1,7 @@
-const CACHE_NAME = 'gift-v2';
+const CACHE_NAME = 'gift-v3';
 const ASSETS = ['./', './index.html', './xlsx.js', './manifest.json', './icon-192.png', './icon-512.png'];
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting()));
+  e.waitUntil(caches.open(CACHE_NAME).then(c => Promise.all(ASSETS.map(a => c.add(new Request(a, { cache: 'reload' }))))).then(() => self.skipWaiting()));
 });
 self.addEventListener('activate', e => {
   e.waitUntil(caches.keys().then(keys =>
@@ -14,4 +14,7 @@ self.addEventListener('fetch', e => {
     caches.match(e.request, { ignoreSearch: true }).then(c => c || fetch(e.request))
       .catch(() => caches.match('./index.html'))
   );
+});
+self.addEventListener('message', e => {
+  if (e.data === 'version' && e.ports[0]) e.ports[0].postMessage(CACHE_NAME.replace('gift-', ''));
 });

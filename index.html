@@ -132,6 +132,15 @@
   .sizes button.on { background: var(--accent); border-color: var(--accent); color: #fff; }
   .sizes button.on small { color: #fff; }
   .preview { padding: 14px; border: 1px dashed var(--border); border-radius: 14px; color: var(--text2); }
+  .ver { display: flex; align-items: center; gap: 10px; }
+  .ver span { flex: 1; font-size: 1.25rem; font-weight: 800; }
+  .ver button {
+    height: 3.5rem; padding: 0 1.2rem; border-radius: 12px; border: 2px solid var(--accent);
+    background: var(--surface); color: var(--accent); font-size: 1.125rem; font-weight: 800;
+  }
+  .upd-msg { min-height: 1.5rem; color: var(--text2); font-size: 1rem; }
+  .upd-msg.err { color: var(--danger); }
+  .upd-msg.ok { color: var(--ok); font-weight: 700; }
   .preview b { color: var(--text); font-size: 1.5rem; }
 </style>
 <script>try{var f=localStorage.getItem("fs");if(f)document.documentElement.style.setProperty("--fs",f)}catch(e){}</script>
@@ -182,6 +191,12 @@
     <button data-s="1.3" type="button">아주 크게<small>130%</small></button>
   </div>
   <div class="preview">미리보기<br><b>No. 12 · 100,000원</b></div>
+  <p class="set-title">앱 버전</p>
+  <div class="ver">
+    <span id="verText"></span>
+    <button id="btnUpd" type="button">업데이트 확인</button>
+  </div>
+  <div id="updMsg" class="upd-msg" role="status"></div>
 </main>
 
 <nav>
@@ -214,6 +229,7 @@
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
+const APP_VERSION = 'v3'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
 
@@ -455,6 +471,49 @@ $('sizes').addEventListener('click', e => {
   markSize();
 });
 
+/* ---------- 설정: 업데이트 확인 ---------- */
+$('verText').textContent = '현재 버전 ' + APP_VERSION;
+function updMsg(t, cls) { const m = $('updMsg'); m.textContent = t; m.className = 'upd-msg' + (cls ? ' ' + cls : ''); }
+function swVersion(sw) {
+  return new Promise(res => {
+    const ch = new MessageChannel();
+    ch.port1.onmessage = e => res(e.data);
+    sw.postMessage('version', [ch.port2]);
+    setTimeout(() => res(null), 3000);
+  });
+}
+function whenActivated(w) {
+  return new Promise(res => {
+    if (w.state === 'activated') return res();
+    w.addEventListener('statechange', () => { if (w.state === 'activated') res(); });
+    setTimeout(res, 15000);
+  });
+}
+$('btnUpd').addEventListener('click', async () => {
+  const btn = $('btnUpd');
+  if (!('serviceWorker' in navigator)) return updMsg('이 브라우저는 업데이트 확인을 지원하지 않습니다', 'err');
+  if (!navigator.onLine) return updMsg('인터넷 연결이 필요합니다 (장부 입력에는 영향 없음)', 'err');
+  btn.disabled = true;
+  updMsg('확인 중...');
+  try {
+    const reg = await navigator.serviceWorker.getRegistration();
+    if (!reg) throw new Error('no reg');
+    await reg.update();
+    if (reg.installing || reg.waiting) await whenActivated(reg.installing || reg.waiting);
+    const ver = reg.active ? await swVersion(reg.active) : null;
+    if (ver && ver !== APP_VERSION) {
+      try { sessionStorage.setItem('updated', ver); } catch {}
+      updMsg(`${ver}로 업데이트 중...`, 'ok');
+      setTimeout(() => location.reload(), 400);
+      return;
+    }
+    updMsg(`최신 버전입니다 (${APP_VERSION})`, 'ok');
+  } catch {
+    updMsg('확인 실패: 인터넷 연결을 확인하고 다시 시도하세요', 'err');
+  }
+  btn.disabled = false;
+});
+
 /* ---------- 시작 ---------- */
 (async function init() {
   try {
@@ -465,6 +524,10 @@ $('sizes').addEventListener('click', e => {
   $('no').value = Math.max(0, ...entries.keys()) + 1;
   renderAmount();
   markSize();
+  try {
+    const u = sessionStorage.getItem('updated');
+    if (u) { sessionStorage.removeItem('updated'); toast(`${u}로 업데이트됨`); }
+  } catch {}
   if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(() => {});
 })();

@@ -8,4 +8,4 @@
 - 데이터는 기기의 IndexedDB에만 저장된다.
 
 ## 수정 규칙
-`sw.js`의 `CACHE_NAME`(`gift-vN`) 숫자를 올려야 설치된 앱에 변경이 반영된다.
+`sw.js`의 `CACHE_NAME`(`gift-vN`)과 `index.html`의 `APP_VERSION`(`vN`)을 같은 값으로 올려야 설치된 앱에 변경이 반영된다. 값이 다르면 배포가 중단된다.

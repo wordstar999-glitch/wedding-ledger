@@ -32,6 +32,8 @@ jobs:
             test -f "$f" || { echo "ERROR: missing $f"; exit 1; }
             cp "$f" dist/
           done
+          sw_ver=$(grep -oE "gift-v[0-9]+" sw.js | head -1 | sed 's/gift-//')
+          grep -q "APP_VERSION = '${sw_ver}'" index.html || { echo "ERROR: APP_VERSION in index.html does not match sw.js (${sw_ver})"; exit 1; }
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
