@@ -526,7 +526,7 @@
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
-const APP_VERSION = 'v78'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
+const APP_VERSION = 'v79'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
 // '…니다.' 뒤에서 줄을 바꾼다(화면에는 white-space: pre-line으로 표시).
@@ -1010,7 +1010,7 @@ $('eMic').addEventListener('click', () => {
 $('dlg').addEventListener('close', stopMic);
 
 /* 이름 자동 저장: 이름이 비어 있던 항목에서 입력이 멈추면 저장 후 다음 빈 항목으로 */
-const AUTO_DELAY_MS = 1200, VOICE_DELAY_MS = 500; // 말하기 입력은 인식이 끝난 뒤이므로 짧게 기다린다.
+const AUTO_DELAY_MS = 1200, VOICE_DELAY_MS = 100; // 말하기 입력은 인식이 끝난 뒤이므로 짧게 기다린다.
 let autoOn = true, autoTimer = null, autoArmed = false, voiceInput = false;
 try { autoOn = localStorage.getItem('auto') !== '0'; } catch {}
 const clearAuto = () => { clearTimeout(autoTimer); autoTimer = null; };
