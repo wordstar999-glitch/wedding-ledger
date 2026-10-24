@@ -158,16 +158,10 @@
   dialog .btns { display: flex; gap: 0.5rem; margin-top: 1rem; }
   dialog .btns button { flex: 1; min-height: 3.5rem; border-radius: 0.75rem; border: 2px solid var(--border); background: var(--surface); font-weight: 800; }
   dialog .btns .del { border-color: var(--danger); color: var(--danger); }
-  dialog { width: min(96vw, 460px) !important; padding: 14px !important; }
-  .erow { display: grid; grid-template-columns: minmax(2.4rem, .7fr) minmax(0, 2.6fr) minmax(2.9rem, .95fr) minmax(2.2rem, .85fr); gap: 6px; }
-  @media (max-width: 355px) {
-    .erow { grid-template-columns: 1fr 1fr; }
-    .erow label:nth-child(2) { grid-column: 1 / -1; order: 3; }
-    .erow label:nth-child(3) { order: 2; }
-    .erow label:nth-child(4) { grid-column: 1 / -1; order: 4; }
-  }
+  dialog { width: min(98vw, 460px) !important; padding: 10px !important; }
+  .erow { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 2.4fr) minmax(0, 1.1fr) minmax(0, 1fr); gap: 4px; }
   dialog .erow label { display: flex; flex-direction: column; align-items: stretch; margin: 0; font-size: .75rem; letter-spacing: -.02em; text-align: center; white-space: nowrap; line-height: 1.2; min-width: 0; }
-  dialog .erow input { width: 100%; min-width: 0; padding: 0 .1rem; font-size: var(--t); text-align: center; height: 3.25rem; margin-top: 4px; }
+  dialog .erow input { width: 100%; min-width: 0; padding: 0 .05rem; font-size: var(--t); text-align: center; height: 3.25rem; margin-top: 4px; }
   .erow input[readonly] { background: var(--border); color: var(--text2); }
   #list li.void { opacity: .6; }
   .erow input[type=number] { -moz-appearance: textfield; appearance: textfield; }
@@ -395,7 +389,7 @@
       <label>금액(만)<input id="eAmt" type="text" inputmode="decimal" autocomplete="off"></label>
       <label>비고<input id="eMemo" type="text" maxlength="100" autocomplete="off" enterkeyhint="done"></label>
     </div>
-    <button type="button" class="mic" id="eMic">🎤 말하기</button>
+    <button type="button" class="mic" id="eMic">🎤 말하기로 이름 입력</button>
     <div id="dlgErr" role="alert"></div>
     <div class="btns">
       <button type="button" class="del" id="eDel">삭제</button>
@@ -435,7 +429,7 @@
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
-const APP_VERSION = 'v39'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
+const APP_VERSION = 'v40'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
 
@@ -811,7 +805,7 @@ let rec = null;
 const cleanName = t => t.replace(/[\s.,!?]/g, '').slice(0, 40);
 function micState(on, msg) {
   $('eMic').classList.toggle('on', on);
-  $('eMic').textContent = on ? '🎤 듣는 중... 이름을 말하세요' : '🎤 말하기';
+  $('eMic').textContent = on ? '🎤 듣는 중... 이름을 말하세요' : '🎤 말하기로 이름 입력';
   if (msg !== undefined) $('dlgErr').textContent = msg;
 }
 function stopMic() {
