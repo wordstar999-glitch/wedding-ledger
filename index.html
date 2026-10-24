@@ -462,7 +462,7 @@
     <details class="sec" data-h="etc">
       <summary>기타</summary>
       <div class="sec-body"><ul>
-        <li><b>설치</b>: Chrome에서 주소를 열고 화면 위의 '앱 설치'를 누르거나, 메뉴(⋮) &gt; 앱 설치를 누릅니다.</li>
+        <li><b>설치</b>: 전달받은 주소를 클릭하면 설치할 수 있습니다.</li>
         <li><b>오프라인</b>: 설치 후에는 인터넷 없이 입력·저장·정산·엑셀·백업을 할 수 있습니다. 음성 입력만 인터넷이 필요합니다.</li>
         <li><b>데이터 보관</b>: 장부는 이 휴대폰에만 저장됩니다. 앱이나 사이트 데이터를 지우면 사라지므로 행사 중과 행사 후에 백업을 저장해 두세요.</li>
         <li><b>업데이트</b>: 새 버전은 앱을 열 때 뒤에서 받아 두고 다음에 열 때 적용됩니다.</li>
@@ -501,7 +501,7 @@
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
-const APP_VERSION = 'v44'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
+const APP_VERSION = 'v45'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
 // '…니다.' 뒤에서 줄을 바꾼다(화면에는 white-space: pre-line으로 표시).
