@@ -257,7 +257,7 @@
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
-const APP_VERSION = 'v12'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
+const APP_VERSION = 'v13'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
 
@@ -309,7 +309,7 @@ function toast(msg, err) {
 }
 
 /* ---------- 금액 프리셋 ---------- */
-const DEFAULT_PRESETS = [30000, 50000, 100000, 200000, 300000, 500000];
+const DEFAULT_PRESETS = [30000, 50000, 100000, 150000, 200000, 300000, 500000];
 const MAX_PRESETS = 9, MAX_AMOUNT = 999990000;
 let presets = DEFAULT_PRESETS.slice();
 try {
@@ -373,7 +373,7 @@ $('chips').addEventListener('click', e => {
   renderPresets();
 });
 $('pReset').addEventListener('click', () => {
-  if (!confirm('금액 버튼을 기본값(3·5·10·20·30·50만)으로 되돌릴까요?')) return;
+  if (!confirm('금액 버튼을 기본값(3·5·10·15·20·30·50만)으로 되돌릴까요?')) return;
   presets = DEFAULT_PRESETS.slice();
   savePresets();
   pMsg('기본값으로 되돌림');
