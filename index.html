@@ -211,14 +211,17 @@
   .fld input:focus { outline: none; border-color: var(--accent); }
   .ev-line { text-align: center; font-size: var(--s); color: var(--text2); overflow-wrap: anywhere; }
   #rdlg, #bdlg { width: min(96vw, 520px); }
-  .bd-list { display: flex; flex-direction: column; gap: 0.5rem; max-height: 55vh; overflow-y: auto; margin-bottom: .5rem; }
-  .bd-item { border: 2px solid var(--border); border-radius: 0.75rem; padding: 0.6rem 0.75rem; display: flex; flex-direction: column; gap: 0.25rem; }
-  .bd-item b { font-size: var(--t); overflow-wrap: anywhere; }
-  .bd-item .meta { font-size: var(--s); color: var(--text2); overflow-wrap: anywhere; }
-  .bd-item .row { display: flex; gap: 0.5rem; margin-top: 0.25rem; }
-  .bd-item .row button { flex: 1; min-height: 3rem; border-radius: 0.625rem; border: 2px solid var(--border); background: var(--surface); font-size: var(--t); font-weight: 800; color: var(--text); }
-  .bd-item .row .go { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
-  .bd-item .row .rm { color: var(--danger); border-color: var(--danger); flex: 0 0 auto; padding: 0 1rem; }
+  .bd-list { display: flex; flex-direction: column; gap: 0.4rem; max-height: 55vh; overflow-y: auto; margin-bottom: .5rem; }
+  .bd-ev { margin-top: 0.25rem; font-size: var(--s); font-weight: 900; color: var(--strong); overflow-wrap: anywhere; }
+  .bd-item { border: 2px solid var(--border); border-radius: 0.75rem; padding: 0.4rem 0.5rem 0.4rem 0.75rem; display: flex; align-items: center; gap: 0.5rem; }
+  .bd-main { flex: 1; min-width: 0; }
+  .bd-main b { display: block; font-size: calc(var(--t) * 0.92); white-space: nowrap; }
+  .bd-main .meta { font-size: var(--s); color: var(--text2); overflow-wrap: anywhere; }
+  .bd-main .tag { display: inline-block; margin-left: 0.35rem; padding: 0 0.4rem; border-radius: 999px; background: var(--accent-bg); color: var(--accent-fg); font-size: calc(var(--s) * 0.85); font-weight: 800; vertical-align: middle; }
+  .bd-item button { flex: 0 0 auto; min-height: 2.75rem; border-radius: 0.625rem; border: 2px solid var(--border); background: var(--surface); font-size: var(--t); font-weight: 800; color: var(--text); }
+  .bd-item .go { padding: 0 0.9rem; background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+  .bd-item .rm { min-height: 2.25rem; padding: 0 0.5rem; border: 0; background: none; color: var(--text2); font-size: var(--s); font-weight: 700; text-decoration: underline; }
+  .bd-more { min-height: 2.75rem; border: 2px dashed var(--border); border-radius: 0.625rem; background: none; color: var(--text2); font-size: var(--s); font-weight: 800; }
   #bdlg .btns { display: flex; gap: 8px; margin-top: .5rem; }
   #bdlg .btns button { flex: 1; min-height: 3.5rem; border-radius: 0.75rem; border: 2px solid var(--border); background: var(--surface); font-size: var(--t); font-weight: 800; color: var(--text); }
   .rd-title { margin: 0 0 .5rem; font-size: var(--t); font-weight: 800; }
@@ -472,7 +475,7 @@
 </dialog>
 
 <dialog id="bdlg">
-  <p class="rd-title">백업 보관함 (최근 10개)</p>
+  <p class="rd-title">백업 보관함</p>
   <div id="bdList" class="bd-list"></div>
   <div class="upd-msg">앱을 지우면 보관함도 사라집니다. 파일 백업도 따로 보관하세요.</div>
   <div class="btns">
@@ -501,7 +504,7 @@
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
-const APP_VERSION = 'v56'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
+const APP_VERSION = 'v57'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
 // '…니다.' 뒤에서 줄을 바꾼다(화면에는 white-space: pre-line으로 표시).
@@ -1259,7 +1262,7 @@ $('bExport').addEventListener('click', async () => {
   if (r === 'cancel') return bMsg('내보내기를 취소했습니다.');
   bMsg(r === 'shared' ? '저장할 곳을 선택해 내보냈습니다.' : '파일로 내보냈습니다.', 'ok');
 });
-$('bRestore').addEventListener('click', async () => { await renderBackupList(); $('bdlg').showModal(); });
+$('bRestore').addEventListener('click', async () => { bdShowAll = false; await renderBackupList(); $('bdlg').showModal(); });
 // 복원 전 미리보기: 불러올 백업과 현재 장부를 나란히 보여주고 확인을 받는다.
 function confirmRestore(data) {
   const cur = summarize(sorted()), bk = summarize(data.list), curEv = getEvent();
@@ -1322,7 +1325,14 @@ $('bFile').addEventListener('change', async () => {
   await restoreFrom(data);
 });
 
-// 앱 안 백업 보관함: 목록에서 골라 복원한다.
+// 앱 안 백업 보관함: 목록에서 골라 복원한다. 처음에는 최근 3개만 보여주고 '더 보기'로 펼친다.
+let bdShowAll = false;
+const BD_FIRST = 3;
+function bdWhen(iso) {
+  const d = new Date(iso), now = new Date();
+  const y = d.getFullYear() !== now.getFullYear() ? d.getFullYear() + '년 ' : '';
+  return `${y}${d.getMonth() + 1}월 ${d.getDate()}일 ${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+}
 async function renderBackupList() {
   const box = $('bdList');
   box.textContent = '';
@@ -1335,16 +1345,30 @@ async function renderBackupList() {
     box.appendChild(d);
     return;
   }
-  items.forEach(it => {
+  const shown = bdShowAll ? items : items.slice(0, BD_FIRST);
+  let lastEv = null;
+  shown.forEach(it => {
+    const evKey = (it.eventName || '') + '|' + (it.eventDate || '');
+    if (evKey !== lastEv) {
+      lastEv = evKey;
+      const h = document.createElement('div');
+      h.className = 'bd-ev';
+      h.textContent = [it.eventName || '(행사 이름 없음)', it.eventDate].filter(Boolean).join(' · ');
+      box.appendChild(h);
+    }
     const card = document.createElement('div');
     card.className = 'bd-item';
+    const main = document.createElement('div'); main.className = 'bd-main';
     const t = document.createElement('b');
-    t.textContent = it.eventName || '(행사 이름 없음)';
-    const m1 = document.createElement('div'); m1.className = 'meta';
-    m1.textContent = `행사 ${it.eventDate || '날짜 미입력'} · ${KIND_TEXT[it.kind] || '백업'}`;
-    const m2 = document.createElement('div'); m2.className = 'meta';
-    m2.textContent = `저장 ${ymdhm(new Date(it.savedAt))} · ${it.count}건 · ${fmtMan(it.total)}만원` + (it.voided ? ` · 삭제됨 ${it.voided}` : '');
-    const row = document.createElement('div'); row.className = 'row';
+    t.textContent = bdWhen(it.savedAt);
+    const m = document.createElement('div'); m.className = 'meta';
+    m.textContent = `${it.count}건 · ${fmtMan(it.total)}만원`;
+    if (it.kind && it.kind !== 'manual') {
+      const tag = document.createElement('span'); tag.className = 'tag';
+      tag.textContent = it.kind === 'before-reset' ? '초기화 전' : '복원 전';
+      m.appendChild(tag);
+    }
+    main.append(t, m);
     const go = document.createElement('button'); go.type = 'button'; go.className = 'go'; go.textContent = '복원';
     const rm = document.createElement('button'); rm.type = 'button'; rm.className = 'rm'; rm.textContent = '삭제';
     go.onclick = async () => {
@@ -1354,14 +1378,20 @@ async function renderBackupList() {
       await restoreFrom(data);
     };
     rm.onclick = async () => {
-      if (!confirm('이 백업을 보관함에서 삭제할까요?\n(다운로드된 파일은 지워지지 않습니다)')) return;
+      if (!confirm('이 백업을 보관함에서 삭제할까요?')) return;
       try { await bkDel(it.id); } catch {}
       renderBackupList();
     };
-    row.append(go, rm);
-    card.append(t, m1, m2, row);
+    card.append(main, go, rm);
     box.appendChild(card);
   });
+  if (!bdShowAll && items.length > BD_FIRST) {
+    const more = document.createElement('button');
+    more.type = 'button'; more.className = 'bd-more';
+    more.textContent = `더 보기 (${items.length - BD_FIRST}개)`;
+    more.onclick = () => { bdShowAll = true; renderBackupList(); };
+    box.appendChild(more);
+  }
 }
 $('bdClose').addEventListener('click', () => $('bdlg').close());
 $('bdFile').addEventListener('click', () => { $('bdlg').close(); $('bFile').value = ''; $('bFile').click(); });
