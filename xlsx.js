@@ -48,7 +48,8 @@
     const rows = [`<row r="1">${str('A1', '연번', 1)}${str('B1', '이름', 1)}${str('C1', '금액(만원)', 1)}${str('D1', '비고', 1)}</row>`];
     entries.forEach((e, i) => {
       const r = i + 2;
-      rows.push(`<row r="${r}">${num('A' + r, e.no)}${str('B' + r, e.name || '')}${num('C' + r, Math.round(e.amount / 10000 * 10000) / 10000)}${str('D' + r, e.memo || '')}</row>`);
+      const amt = e.void ? '' : num('C' + r, Math.round(e.amount / 10000 * 10000) / 10000);
+      rows.push(`<row r="${r}">${num('A' + r, e.no)}${str('B' + r, e.void ? '' : e.name || '')}${amt}${str('D' + r, e.void ? '삭제됨' : e.memo || '')}</row>`);
     });
     const X = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n';
     const files = {

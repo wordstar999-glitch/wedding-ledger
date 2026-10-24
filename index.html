@@ -119,6 +119,8 @@
   .erow { display: grid; grid-template-columns: minmax(0, .85fr) minmax(0, 1.8fr) minmax(0, 1.1fr) minmax(0, .95fr); gap: 6px; }
   dialog .erow label { display: flex; flex-direction: column; align-items: stretch; margin: 0; font-size: .8125rem; text-align: center; white-space: nowrap; line-height: 1.2; min-width: 0; }
   dialog .erow input { width: 100%; min-width: 0; padding: 0 .2rem; font-size: 1.0625rem; text-align: center; height: 3.25rem; margin-top: 4px; }
+  .erow input[readonly] { background: var(--border); color: var(--text2); }
+  #list li.void { opacity: .6; }
   .erow input[type=number] { -moz-appearance: textfield; appearance: textfield; }
   .erow input::-webkit-outer-spin-button, .erow input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
   dialog .next { width: 100%; height: 3.75rem; margin-top: 1rem; border-radius: 12px; border: 2px solid var(--accent); font-size: 1.25rem; font-weight: 800; }
@@ -151,6 +153,8 @@
     border-radius: 999px; border: 2px solid var(--border); background: var(--surface); font-size: 1.125rem; font-weight: 800;
   }
   .chip button { width: 2.25rem; height: 2.25rem; border-radius: 50%; border: 0; background: var(--accent-bg); color: var(--danger); font-size: 1.25rem; font-weight: 800; line-height: 1; }
+  #rNo { flex: 1; min-width: 0; height: 3.5rem; font-size: 1.25rem; font-weight: 700; text-align: right; padding: 0 .75rem; border: 2px solid var(--border); border-radius: 12px; background: var(--surface); }
+  #rNo:focus { outline: none; border-color: var(--accent); }
   #pNew { flex: 1; min-width: 0; height: 3.5rem; font-size: 1.25rem; font-weight: 700; text-align: right; padding: 0 .75rem; border: 2px solid var(--border); border-radius: 12px; background: var(--surface); }
   #pNew:focus { outline: none; border-color: var(--accent); }
   .unit { flex: 0 0 auto !important; font-size: 1.125rem !important; color: var(--text2); }
@@ -223,6 +227,12 @@
   </div>
   <div id="pMsg" class="upd-msg" role="status"></div>
   <button id="pReset" type="button" class="link-btn">기본값으로 되돌리기</button>
+  <p class="set-title">번호 복구</p>
+  <div class="ver">
+    <input id="rNo" type="text" inputmode="numeric" placeholder="복구할 번호 (예: 12)" aria-label="복구할 번호">
+    <button id="rBtn" type="button">복구</button>
+  </div>
+  <div id="rMsg" class="upd-msg" role="status">삭제로 사라진 번호를 되살립니다. 번호만 복구되고, 이름·금액은 정산에서 다시 입력해야 합니다.</div>
   <p class="set-title">앱 버전</p>
   <div class="ver">
     <span id="verText"></span>
@@ -240,7 +250,7 @@
 <dialog id="dlg">
   <form method="dialog" id="dlgForm" novalidate>
     <div class="erow">
-      <label>번호<input id="eNo" type="number" inputmode="numeric" min="1" step="1"></label>
+      <label>번호<input id="eNo" type="number" readonly tabindex="-1" aria-label="번호(변경 불가)"></label>
       <label>이름<input id="eName" type="text" maxlength="40" lang="ko" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="done"></label>
       <label>금액(만)<input id="eAmt" type="text" inputmode="decimal" autocomplete="off"></label>
       <label>비고<input id="eMemo" type="text" maxlength="100" autocomplete="off" enterkeyhint="done"></label>
@@ -259,7 +269,7 @@
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
-const APP_VERSION = 'v15'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
+const APP_VERSION = 'v17'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
 
@@ -392,7 +402,8 @@ function renderAmount() {
 }
 function checkDup() {
   const n = parseInt($('no').value, 10);
-  $('no').classList.toggle('dup', entries.has(n));
+  const ex = entries.get(n);
+  $('no').classList.toggle('dup', !!ex && !ex.void);
 }
 $('presets').addEventListener('click', e => {
   const b = e.target.closest('button');
@@ -410,13 +421,20 @@ $('manual').addEventListener('input', () => {
 });
 $('no').addEventListener('input', checkDup);
 
+// 지금까지 사용한 가장 큰 번호를 기억해 두어, 끝 번호가 지워져도 번호가 재사용되지 않게 한다.
+const hwGet = () => { try { return parseInt(localStorage.getItem('hw'), 10) || 0; } catch { return 0; } };
+const hwSet = n => { try { if (n > hwGet()) localStorage.setItem('hw', String(n)); } catch {} };
+
 let saving = false;
 async function save() {
   if (saving) return;
   const no = parseInt($('no').value, 10);
   if (!(no >= 1)) return toast('번호를 확인하세요', true);
-  if (entries.has(no)) return toast(`No.${no}은(는) 이미 저장됨`, true);
+  const ex = entries.get(no);
+  if (ex && !ex.void) return toast(`No.${no}은(는) 이미 저장됨`, true);
   if (!(amount > 0)) return toast('금액을 선택하세요', true);
+  const top = Math.max(hwGet(), ...entries.keys(), 0);
+  if (no > top + 1 && !confirm(`No.${no}(으)로 건너뛰면 ${top + 1}~${no - 1}번이 비어 있는 번호(삭제됨)로 채워집니다. 계속할까요?`)) return;
   saving = true;
   const entry = { no, name: '', amount, memo: '', ts: Date.now() };
   try {
@@ -427,6 +445,7 @@ async function save() {
   }
   saving = false;
   entries.set(no, entry);
+  hwSet(no);
   toast(`No.${no}  ${fmtMan(amount)}만원 저장`);
   amount = 0;
   $('manual').value = '';
@@ -460,13 +479,14 @@ function nameMatch(name, q) {
 let noNameOnly = false;
 function renderSum() {
   const all = sorted();
-  $('tCount').textContent = fmt(all.length) + '건';
-  $('tSum').textContent = fmtMan(all.reduce((s, e) => s + e.amount, 0)) + '만원';
+  const live = all.filter(e => !e.void);
+  $('tCount').textContent = fmt(live.length) + '건';
+  $('tSum').textContent = fmtMan(live.reduce((s, e) => s + e.amount, 0)) + '만원';
   const q = $('q').value.trim().toLowerCase();
-  $('fNoN').textContent = all.filter(e => !e.name).length;
+  $('fNoN').textContent = live.filter(e => !e.name).length;
   $('fNo').classList.toggle('on', noNameOnly);
   $('fNo').setAttribute('aria-pressed', noNameOnly);
-  const base = noNameOnly ? all.filter(e => !e.name) : all;
+  const base = noNameOnly ? live.filter(e => !e.name) : all;
   const rows = q ? base.filter(e => String(e.no) === q || nameMatch(e.name || '', q) || (e.memo || '').toLowerCase().includes(q)) : base;
   const ul = $('list');
   ul.textContent = '';
@@ -481,11 +501,12 @@ function renderSum() {
   rows.forEach(e => {
     const li = document.createElement('li');
     li.dataset.no = e.no;
+    if (e.void) li.className = 'void';
     const n = document.createElement('span'); n.className = 'n'; n.textContent = e.no;
-    const nm = document.createElement('span'); nm.className = 'nm' + (e.name ? '' : ' none');
-    nm.textContent = e.name || '(이름 없음)';
+    const nm = document.createElement('span'); nm.className = 'nm' + (e.name && !e.void ? '' : ' none');
+    nm.textContent = e.void ? '(삭제됨)' : e.name || '(이름 없음)';
     if (e.memo) { const s = document.createElement('small'); s.textContent = e.memo; nm.appendChild(s); }
-    const a = document.createElement('span'); a.className = 'a'; a.textContent = fmtMan(e.amount) + '만';
+    const a = document.createElement('span'); a.className = 'a'; a.textContent = e.void ? '-' : fmtMan(e.amount) + '만';
     li.append(n, nm, a);
     frag.appendChild(li);
   });
@@ -507,37 +528,37 @@ function openEdit(no) {
   const e = entries.get(no);
   if (!e) return;
   editing = no;
-  $('eNo').value = e.no; $('eName').value = e.name || ''; $('eAmt').value = toMan(e.amount); $('eMemo').value = e.memo || '';
-  $('dlgErr').textContent = '';
+  $('eNo').value = e.no; $('eName').value = e.name || ''; $('eAmt').value = e.void ? '' : toMan(e.amount); $('eMemo').value = e.memo || '';
+  $('dlgErr').textContent = e.void ? '삭제된 번호입니다. 금액을 입력하고 저장하면 복구됩니다' : '';
+  $('eDel').hidden = !!e.void;
   clearAuto();
-  autoArmed = !e.name;
+  autoArmed = !e.name && !e.void;
   if (!$('dlg').open) $('dlg').showModal();
   setTimeout(() => { $('eName').focus(); $('eName').select(); }, 0);
 }
 $('eCancel').addEventListener('click', () => $('dlg').close());
+// 일련번호는 키이므로 삭제하지 않는다. 내용만 비우고 '삭제됨'으로 표시한다(금액을 다시 입력하면 복구).
 $('eDel').addEventListener('click', async () => {
-  if (editing == null || !confirm(`No.${editing} 내역을 삭제할까요?`)) return;
-  try { await dbApply([['del', editing]]); } catch { return ($('dlgErr').textContent = '삭제 실패'); }
-  entries.delete(editing);
+  const old = entries.get(editing);
+  if (!old || !confirm(`No.${editing} 내용을 삭제할까요?\n(번호는 유지됩니다)`)) return;
+  const v = { no: old.no, name: '', amount: 0, memo: '', ts: old.ts, void: true };
+  try { await dbApply([['put', v]]); } catch { return ($('dlgErr').textContent = '삭제 실패'); }
+  entries.set(editing, v);
   $('dlg').close();
   afterChange();
-  toast('삭제됨');
+  toast(`No.${v.no} 삭제됨 (번호 유지)`);
 });
 // 수정 내용을 저장한다. 성공하면 저장된 번호를, 실패하면 null을 반환한다(다이얼로그는 닫지 않음).
 async function commitEdit() {
   const old = entries.get(editing);
-  const no = parseInt($('eNo').value, 10), amt = fromMan($('eAmt').value.replace(/[^0-9.]/g, ''));
   const err = m => { $('dlgErr').textContent = m; return null; };
   if (!old) return err('항목을 찾을 수 없습니다');
-  if (!(no >= 1)) return err('번호를 확인하세요');
-  if (!(amt > 0)) return err('금액을 확인하세요 (만원 단위, 예: 5)');
-  if (no !== editing && entries.has(no)) return err(`No.${no}은(는) 이미 사용 중입니다`);
-  const next = { ...old, no, amount: amt, name: $('eName').value.trim(), memo: $('eMemo').value.trim() };
-  const ops = no !== editing ? [['del', editing], ['put', next]] : [['put', next]];
-  try { await dbApply(ops); } catch { return err('저장 실패'); }
-  entries.delete(editing);
-  entries.set(no, next);
-  return no;
+  const amt = fromMan($('eAmt').value.replace(/[^0-9.]/g, ''));
+  if (!(amt > 0)) return err(old.void ? '금액을 입력하면 복구됩니다 (만원 단위)' : '금액을 확인하세요 (만원 단위, 예: 5)');
+  const next = { no: old.no, ts: old.ts, amount: amt, name: $('eName').value.trim(), memo: $('eMemo').value.trim(), void: false };
+  try { await dbApply([['put', next]]); } catch { return err('저장 실패'); }
+  entries.set(old.no, next);
+  return old.no;
 }
 // 저장 후, 현재 번호 뒤에서 이름이 비어 있는 항목을 이어서 연다.
 async function saveAndNext() {
@@ -547,7 +568,7 @@ async function saveAndNext() {
   if (no === null) return;
   afterChange();
   if (!wasBlank) { $('dlg').close(); return; }
-  const next = sorted().find(e => e.no > no && !e.name);
+  const next = sorted().find(e => e.no > no && !e.name && !e.void);
   if (next) { toast(`No.${no} 저장`); openEdit(next.no); }
   else { $('dlg').close(); toast('이름이 비어 있는 다음 항목이 없습니다'); }
 }
@@ -630,6 +651,25 @@ $('sizes').addEventListener('click', e => {
   markSize();
 });
 
+/* ---------- 설정: 번호 복구 ---------- */
+function rMsg(t, err) { const m = $('rMsg'); m.textContent = t; m.className = 'upd-msg' + (err ? ' err' : ''); }
+$('rNo').addEventListener('input', () => { $('rNo').value = $('rNo').value.replace(/[^0-9]/g, ''); });
+$('rBtn').addEventListener('click', async () => {
+  const n = parseInt($('rNo').value, 10);
+  const top = Math.max(hwGet(), ...entries.keys(), 0);
+  if (!(n >= 1)) return rMsg('번호를 입력하세요', true);
+  if (entries.has(n)) return rMsg(`No.${n}은(는) 이미 있습니다`, true);
+  if (n > top + 1) return rMsg(`마지막 번호(${top}) 바로 다음(${top + 1})까지만 복구할 수 있습니다`, true);
+  const v = { no: n, name: '', amount: 0, memo: '', ts: Date.now(), void: true };
+  try { await dbApply([['put', v]]); } catch { return rMsg('복구 실패', true); }
+  entries.set(n, v);
+  hwSet(n);
+  $('rNo').value = '';
+  if (!(parseInt($('no').value, 10) > n)) $('no').value = nextFree(n + 1);
+  checkDup();
+  rMsg(`No.${n} 복구됨. 정산에서 해당 번호를 눌러 금액을 입력하세요`);
+});
+
 /* ---------- 설정: 업데이트 확인 ---------- */
 $('verText').textContent = '현재 버전 ' + APP_VERSION;
 function updMsg(t, cls) { const m = $('updMsg'); m.textContent = t; m.className = 'upd-msg' + (cls ? ' ' + cls : ''); }
@@ -680,7 +720,19 @@ $('btnUpd').addEventListener('click', async () => {
   } catch {
     toast('저장소를 열 수 없습니다', true);
   }
-  $('no').value = Math.max(0, ...entries.keys()) + 1;
+  // 일련번호는 키이므로 1~(지금까지 쓴 최대 번호) 중 빠진 번호가 있으면 '삭제됨'으로 복구한다.
+  const topNo = Math.max(hwGet(), ...entries.keys(), 0);
+  const missing = [];
+  for (let n = 1; n <= topNo; n++) if (!entries.has(n)) missing.push({ no: n, name: '', amount: 0, memo: '', ts: Date.now(), void: true });
+  if (missing.length) {
+    try {
+      await dbApply(missing.map(v => ['put', v]));
+      missing.forEach(v => entries.set(v.no, v));
+      toast(`빈 번호 ${missing.length}개를 복구했습니다`);
+    } catch {}
+  }
+  hwSet(topNo);
+  $('no').value = topNo + 1;
   renderPresets();
   renderAuto();
   markSize();
