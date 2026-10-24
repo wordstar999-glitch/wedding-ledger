@@ -31,6 +31,8 @@
   button { touch-action: manipulation; cursor: pointer; }
   main { overflow-y: auto; flex: 1; min-height: 0; padding: 0.75rem 1rem; display: flex; flex-direction: column; gap: 0.75rem; }
   main[hidden] { display: none; }
+  main > * { flex-shrink: 0; }
+  #list { flex-shrink: 1 !important; }
 
   /* 하단 탭 */
   nav { display: flex; border-top: 1px solid var(--border); background: var(--surface); padding-bottom: env(safe-area-inset-bottom); }
@@ -257,7 +259,7 @@
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
-const APP_VERSION = 'v14'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
+const APP_VERSION = 'v15'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
 
