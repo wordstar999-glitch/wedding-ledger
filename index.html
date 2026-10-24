@@ -526,7 +526,7 @@
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
-const APP_VERSION = 'v77'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
+const APP_VERSION = 'v78'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
 // '…니다.' 뒤에서 줄을 바꾼다(화면에는 white-space: pre-line으로 표시).
@@ -1001,7 +1001,7 @@ $('eMic').addEventListener('click', () => {
     rec = null;
     micState(false, errMsg || (heard ? '' : '음성이 들리지 않았습니다. 다시 눌러 주세요'));
     // 입력이 끝났으므로 일반 입력과 같이 자동 저장 타이머를 시작한다.
-    if (heard) $('eName').dispatchEvent(new Event('input'));
+    if (heard) { voiceInput = true; $('eName').dispatchEvent(new Event('input')); }
   };
   rec = r;
   micState(true, '');
@@ -1010,14 +1010,16 @@ $('eMic').addEventListener('click', () => {
 $('dlg').addEventListener('close', stopMic);
 
 /* 이름 자동 저장: 이름이 비어 있던 항목에서 입력이 멈추면 저장 후 다음 빈 항목으로 */
-const AUTO_DELAY_MS = 1200;
-let autoOn = true, autoTimer = null, autoArmed = false;
+const AUTO_DELAY_MS = 1200, VOICE_DELAY_MS = 500; // 말하기 입력은 인식이 끝난 뒤이므로 짧게 기다린다.
+let autoOn = true, autoTimer = null, autoArmed = false, voiceInput = false;
 try { autoOn = localStorage.getItem('auto') !== '0'; } catch {}
 const clearAuto = () => { clearTimeout(autoTimer); autoTimer = null; };
 $('eName').addEventListener('input', () => {
   clearAuto();
+  const delay = voiceInput ? VOICE_DELAY_MS : AUTO_DELAY_MS;
+  voiceInput = false;
   if (!autoOn || !autoArmed || !$('eName').value.trim()) return;
-  autoTimer = setTimeout(() => { autoTimer = null; if ($('dlg').open) saveAndNext(); }, AUTO_DELAY_MS);
+  autoTimer = setTimeout(() => { autoTimer = null; if ($('dlg').open) saveAndNext(); }, delay);
 });
 ['eNo', 'eAmt', 'eMemo'].forEach(id => $(id).addEventListener('input', clearAuto));
 $('dlg').addEventListener('close', clearAuto);
