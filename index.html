@@ -250,7 +250,7 @@
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
-const APP_VERSION = 'v5'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
+const APP_VERSION = 'v6'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
 
@@ -646,7 +646,17 @@ $('btnUpd').addEventListener('click', async () => {
     if (u) { sessionStorage.removeItem('updated'); toast(`${u}로 업데이트됨`); }
   } catch {}
   if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
-  if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(() => {});
+  if ('serviceWorker' in navigator) {
+    const hadController = !!navigator.serviceWorker.controller;
+    // 새 버전이 적용되면 입력 중인 값이 없을 때 자동으로 새로 불러온다.
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (!hadController) return;
+      const idle = !amount && !$('manual').value && !$('dlg').open;
+      if (idle) location.reload();
+      else toast('새 버전이 있습니다. 설정에서 업데이트 확인', false);
+    });
+    navigator.serviceWorker.register('./sw.js').then(r => r.update()).catch(() => {});
+  }
 })();
 </script>
 </body>
