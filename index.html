@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <meta name="theme-color" content="#12467a">
 <link rel="manifest" href="./manifest.json">
 <link rel="icon" href="./icon-192.png?v=3">
@@ -101,9 +101,9 @@
   .no-row label { display: flex; align-items: center; font-size: var(--t); font-weight: 900; color: var(--accent-fg); }
   #no {
     flex: 1; min-width: 0; font-size: var(--t); font-weight: 900; text-align: center;
-    color: var(--accent-fg); border: 2px solid var(--accent); border-radius: 0.875rem; background: var(--accent-bg);
+    color: var(--on-accent); border: 2px solid var(--accent); border-radius: 0.875rem; background: var(--accent);
   }
-  #no.dup { border-color: var(--danger); color: var(--danger); }
+  #no.dup { border-color: var(--danger); background: var(--danger); color: #fff; }
   .amt-disp {
     flex: 1 1 0; min-height: 3rem; border-radius: 0.875rem; background: var(--accent-bg); color: var(--accent-fg);
     display: flex; align-items: center; justify-content: center; font-size: var(--t); font-weight: 800;
@@ -175,7 +175,7 @@
   }
   dialog input:focus { outline: none; border-color: var(--accent); }
   dialog .btns { display: flex; gap: 0.5rem; margin-top: 1rem; }
-  dialog .btns button { flex: 1; min-height: 3.5rem; border-radius: 0.75rem; border: 2px solid var(--border); background: var(--surface); font-weight: 800; }
+  dialog .btns button { flex: 1; min-height: 3.25rem; border-radius: 0.75rem; border: 2px solid var(--border); background: var(--surface); font-weight: 800; }
   dialog .btns .del { border-color: var(--danger); color: var(--danger); }
   dialog { width: min(98vw, 460px) !important; padding: 10px !important; }
   .erow { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 2.4fr) minmax(0, 1.1fr) minmax(0, 1fr); gap: 4px; }
@@ -185,11 +185,13 @@
   #list li.void { opacity: .6; }
   .erow input[type=number] { -moz-appearance: textfield; appearance: textfield; }
   .erow input::-webkit-outer-spin-button, .erow input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-  dialog .mic { width: 100%; min-height: 3.75rem; margin-top: .75rem; border-radius: 12px; border: 2px solid var(--accent); background: var(--accent-bg); color: var(--accent-fg); font-size: var(--t); font-weight: 800; }
+  dialog .mic { width: 100%; min-height: 3.25rem; margin-top: .5rem; border-radius: 12px; border: 2px solid var(--accent); background: var(--accent-bg); color: var(--accent-fg); font-size: var(--t); font-weight: 800; }
   dialog .mic.on { background: var(--danger); border-color: var(--danger); color: #fff; animation: pulse 1s infinite; }
   @keyframes pulse { 50% { opacity: .7; } }
   dialog .next { width: 100%; height: 3.75rem; margin-top: 1rem; border-radius: 12px; border: 2px solid var(--accent); font-size: var(--t); font-weight: 800; }
-  dialog .btns { margin-top: .5rem !important; }
+  dialog .btns { margin-top: .4rem !important; }
+  /* 수정 팝업은 화면 위쪽에 붙여서 글자판이 올라와도 삭제·취소·저장 버튼이 보이게 한다 */
+  #dlg { margin: 0.25rem auto auto !important; }
   dialog .btns .ok { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
   #dlgErr { color: var(--danger); min-height: 1.375rem; font-size: var(--s); margin-top: 0.5rem; }
 
@@ -247,12 +249,9 @@
   .sizes button.on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
   .sizes button.on small { color: var(--on-accent); }
   .preview { padding: 14px; border: 1px dashed var(--border); border-radius: 14px; color: var(--text2); }
-  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
-  .chip {
-    display: inline-flex; align-items: center; gap: 8px; min-height: 3rem; padding: 0 .5rem 0 1rem;
-    border-radius: 999px; border: 2px solid var(--border); background: var(--surface); font-size: var(--t); font-weight: 800;
-  }
-  .chip button { width: 2.25rem; height: 2.25rem; border-radius: 50%; border: 0; background: var(--accent-bg); color: var(--danger); font-size: var(--t); font-weight: 800; line-height: 1; }
+  .chips { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+  .chip { display: flex; align-items: center; justify-content: space-between; gap: 2px; min-width: 0; min-height: 2.75rem; padding: 0.15rem 0.2rem 0.15rem 0.45rem; border-radius: 999px; border: 2px solid var(--border); background: var(--surface); font-size: calc(var(--t) * 0.9); font-weight: 800; }
+  .chip button { flex: 0 0 auto; width: 1.7rem; height: 1.7rem; border-radius: 50%; border: 0; background: var(--accent-bg); color: var(--danger); font-size: var(--t); font-weight: 800; line-height: 1; }
   .danger-btn { min-height: 3.5rem; border-radius: 12px; border: 2px solid var(--danger); background: var(--surface); color: var(--danger); font-size: var(--t); font-weight: 800; }
   #pNew { flex: 1; min-width: 0; height: 3.5rem; font-size: var(--t); font-weight: 700; text-align: right; padding: 0 .75rem; border: 2px solid var(--border); border-radius: 12px; background: var(--surface); }
   #pNew:focus { outline: none; border-color: var(--accent); }
@@ -497,7 +496,7 @@
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
-const APP_VERSION = 'v47'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
+const APP_VERSION = 'v48'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
 // '…니다.' 뒤에서 줄을 바꾼다(화면에는 white-space: pre-line으로 표시).
@@ -994,6 +993,7 @@ let curTab = 'input';
 const TAB_TITLE = { input: '입력', sum: '정산', set: '설정' };
 function show(tab) {
   curTab = tab;
+  $('undoBar').hidden = true;
   $('topTitle').textContent = TAB_TITLE[tab];
   $('vInput').hidden = tab !== 'input';
   $('vSum').hidden = tab !== 'sum';
