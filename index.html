@@ -153,7 +153,7 @@
   #fNo.on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
   .tools #fDup { flex: 1; min-height: 3.5rem; white-space: nowrap; border-color: var(--comp-line); background: var(--surface); color: var(--comp-text); }
   .tools #fDup.on { background: var(--comp-text); border-color: var(--comp-text); color: var(--surface); }
-  .dup-tag { display: inline-block; margin-left: 0.35rem; padding: 0 0.4rem; border-radius: 999px; background: var(--comp-bg); border: 1px solid var(--comp-line); color: var(--comp-text); font-size: calc(var(--s) * 0.85); font-weight: 900; vertical-align: middle; }
+  .dup-tag { display: inline-block; margin-left: 0.35rem; padding: 0 0.4rem; border-radius: 999px; background: var(--comp-bg); border: 1px solid var(--comp-line); color: var(--comp-text); font-size: calc(var(--s) * 0.85); font-weight: 900; line-height: 1.35; vertical-align: middle; position: relative; top: calc(var(--t) * -0.1); }
   #q { flex: 1 1 6.5rem; min-width: 0;
     height: 3.25rem; padding: 0 0.6rem; font-size: var(--t); border: 2px solid var(--border); border-radius: 0.75rem; background: var(--surface);
   }
@@ -522,7 +522,7 @@
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
-const APP_VERSION = 'v66'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
+const APP_VERSION = 'v67'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
 // '…니다.' 뒤에서 줄을 바꾼다(화면에는 white-space: pre-line으로 표시).
