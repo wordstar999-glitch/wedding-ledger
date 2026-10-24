@@ -148,10 +148,13 @@
   .tools button.fill { background: var(--accent); color: var(--on-accent); }
   .srch-cap { font-size: var(--s); font-weight: 800; color: var(--strong); margin-bottom: -0.25rem; }
   #q::placeholder { color: var(--strong); font-weight: 800; opacity: 1; }
-  .srch { display: flex; flex-wrap: nowrap; gap: 8px; }
-  #fNo { flex: 0 0 auto; min-height: 3.25rem; padding: 0 .6rem; white-space: nowrap; border-radius: 12px; border: 2px solid var(--border); background: var(--surface); font-size: var(--t); font-weight: 800; }
+  .srch { display: flex; flex-wrap: wrap; gap: 8px; }
+  #fNo { flex: 0 0 auto; min-height: 3.25rem; padding: 0 .6rem; white-space: nowrap; border-radius: 12px; border: 2px solid var(--border); background: var(--surface); color: var(--text); font-size: var(--t); font-weight: 800; }
   #fNo.on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
-  #q { flex: 1 1 0; min-width: 0;
+  .tools #fDup { flex: 1; min-height: 3.5rem; white-space: nowrap; border-color: var(--comp-line); background: var(--surface); color: var(--comp-text); }
+  .tools #fDup.on { background: var(--comp-text); border-color: var(--comp-text); color: var(--surface); }
+  .dup-tag { display: inline-block; margin-left: 0.35rem; padding: 0 0.4rem; border-radius: 999px; background: var(--comp-bg); border: 1px solid var(--comp-line); color: var(--comp-text); font-size: calc(var(--s) * 0.85); font-weight: 900; vertical-align: middle; }
+  #q { flex: 1 1 6.5rem; min-width: 0;
     height: 3.25rem; padding: 0 0.6rem; font-size: var(--t); border: 2px solid var(--border); border-radius: 0.75rem; background: var(--surface);
   }
   #q:focus { outline: none; border-color: var(--accent); }
@@ -321,6 +324,7 @@
   </div>
   <div class="tools">
     <button id="btnXlsx" type="button" class="fill">엑셀 저장</button>
+    <button id="fDup" type="button" aria-pressed="false">동명이인 <b id="fDupN">0</b></button>
   </div>
   <div class="srch-cap">초성(ㄱㅊㅅ)으로도 찾을 수 있습니다.</div>
   <div class="srch">
@@ -462,6 +466,7 @@
         <li><b>항목을 누르면</b> 이름·금액·비고를 고칠 수 있습니다.</li>
         <li><b>말하기 입력</b>은 인터넷이 필요합니다.</li>
         <li><b>이름을 입력</b>하면 1.2초 뒤 자동 저장되고 다음 빈 항목이 열립니다.</li>
+        <li><b>동명이인</b>은 이름 옆에 '동명'이 붙고, 위 버튼으로 모아 볼 수 있습니다.</li>
         <li><b>삭제</b>해도 번호는 남습니다. 금액을 다시 입력하면 되살아납니다.</li>
       </ul></div>
     </details>
@@ -517,7 +522,7 @@
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
-const APP_VERSION = 'v64'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
+const APP_VERSION = 'v66'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
 // '…니다.' 뒤에서 줄을 바꾼다(화면에는 white-space: pre-line으로 표시).
@@ -811,24 +816,38 @@ function nameMatch(name, q) {
   }
   return false;
 }
-let noNameOnly = false;
+let noNameOnly = false, dupOnly = false;
+// 같은 이름(공백·대소문자 무시)이 둘 이상인 항목을 찾는다: 이름 -> 개수
+const nameKey = n => (n || '').replace(/\s+/g, '').toLowerCase();
+function dupCounts(list) {
+  const m = new Map();
+  list.forEach(e => { const k = nameKey(e.name); if (k) m.set(k, (m.get(k) || 0) + 1); });
+  return m;
+}
 function renderSum() {
   const all = sorted();
   const live = all.filter(e => !e.void);
   $('tCount').textContent = fmt(live.length) + '건';
   $('tSum').textContent = fmtMan(live.reduce((s, e) => s + e.amount, 0)) + '만원';
   const q = $('q').value.trim().toLowerCase();
+  const dups = dupCounts(live);
+  const isDup = e => !e.void && (dups.get(nameKey(e.name)) || 0) > 1;
   $('fNoN').textContent = live.filter(e => !e.name).length;
+  $('fDupN').textContent = live.filter(isDup).length;
   $('fNo').classList.toggle('on', noNameOnly);
   $('fNo').setAttribute('aria-pressed', noNameOnly);
-  const base = noNameOnly ? live.filter(e => !e.name) : all;
+  $('fDup').classList.toggle('on', dupOnly);
+  $('fDup').setAttribute('aria-pressed', dupOnly);
+  let base = all;
+  if (noNameOnly) base = live.filter(e => !e.name);
+  else if (dupOnly) base = live.filter(isDup).sort((a, b) => nameKey(a.name).localeCompare(nameKey(b.name), 'ko') || a.no - b.no);
   const rows = q ? base.filter(e => String(e.no) === q || nameMatch(e.name || '', q) || (e.memo || '').toLowerCase().includes(q)) : base;
   const ul = $('list');
   ul.textContent = '';
   if (!rows.length) {
     const li = document.createElement('div');
     li.className = 'empty-msg';
-    li.textContent = !all.length ? '저장된 내역이 없습니다' : noNameOnly && !q ? '이름이 비어 있는 항목이 없습니다' : '검색 결과가 없습니다';
+    li.textContent = !all.length ? '저장된 내역이 없습니다' : noNameOnly && !q ? '이름이 비어 있는 항목이 없습니다' : dupOnly && !q ? '동명이인이 없습니다' : '검색 결과가 없습니다';
     ul.appendChild(li);
     return;
   }
@@ -840,6 +859,7 @@ function renderSum() {
     const n = document.createElement('span'); n.className = 'n'; n.textContent = e.no;
     const nm = document.createElement('span'); nm.className = 'nm' + (e.name && !e.void ? '' : ' none');
     nm.textContent = e.void ? '(삭제됨)' : e.name || '(이름 없음)';
+    if (isDup(e)) { const t = document.createElement('span'); t.className = 'dup-tag'; t.textContent = '동명'; nm.appendChild(t); }
     if (e.memo) { const s = document.createElement('small'); s.textContent = e.memo; nm.appendChild(s); }
     const a = document.createElement('span'); a.className = 'a'; a.textContent = e.void ? '-' : fmtMan(e.amount) + '만';
     li.append(n, nm, a);
@@ -848,7 +868,8 @@ function renderSum() {
   ul.appendChild(frag);
 }
 $('q').addEventListener('input', renderSum);
-$('fNo').addEventListener('click', () => { noNameOnly = !noNameOnly; renderSum(); });
+$('fNo').addEventListener('click', () => { noNameOnly = !noNameOnly; if (noNameOnly) dupOnly = false; renderSum(); });
+$('fDup').addEventListener('click', () => { dupOnly = !dupOnly; if (dupOnly) noNameOnly = false; renderSum(); });
 $('list').addEventListener('click', e => {
   const li = e.target.closest('li');
   if (li) openEdit(Number(li.dataset.no));
@@ -899,6 +920,7 @@ $('eDel').addEventListener('click', async () => {
   afterChange();
   toast(`No.${v.no} 삭제됨 (번호 유지)`);
 });
+let dupNote = '';
 // 수정 내용을 저장한다. 성공하면 저장된 번호를, 실패하면 null을 반환한다(다이얼로그는 닫지 않음).
 async function commitEdit() {
   const old = entries.get(editing);
@@ -909,19 +931,26 @@ async function commitEdit() {
   const next = { no: old.no, ts: old.ts, amount: amt, name: $('eName').value.trim(), memo: $('eMemo').value.trim(), void: false };
   try { await dbApply([['put', next]]); } catch { return err('저장 실패'); }
   entries.set(old.no, next);
+  if (next.name) {
+    const same = [...entries.values()].filter(e => !e.void && nameKey(e.name) === nameKey(next.name)).length;
+    if (same > 1) dupNote = `동명이인: ${next.name} ${same}명`;
+  }
   return old.no;
 }
 // 저장 후, 현재 번호 뒤에서 이름이 비어 있는 항목을 이어서 연다.
 async function saveAndNext() {
   clearAuto();
   const wasBlank = autoArmed;
+  dupNote = '';
   const no = await commitEdit();
   if (no === null) return;
   afterChange();
+  const note = dupNote;
+  if (note) toast(note, true);
   if (!wasBlank) { $('dlg').close(); return; }
   const next = sorted().find(e => e.no > no && !e.name && !e.void);
-  if (next) { toast(`No.${no} 저장`); openEdit(next.no); }
-  else { $('dlg').close(); toast('이름이 비어 있는 다음 항목이 없습니다'); }
+  if (next) { if (!note) toast(`No.${no} 저장`); openEdit(next.no); }
+  else { $('dlg').close(); if (!note) toast('이름이 비어 있는 다음 항목이 없습니다'); }
 }
 $('eOk').addEventListener('click', saveAndNext);
 
@@ -1274,7 +1303,7 @@ function parseBackup(text) {
 }
 function refreshAll() {
   renderPresets(); renderAuto(); renderAutoAmt(); renderTheme(); markSize(); renderSum();
-  amount = 0; $('manual').value = ''; $('q').value = ''; noNameOnly = false;
+  amount = 0; $('manual').value = ''; $('q').value = ''; noNameOnly = false; dupOnly = false;
   $('no').value = Math.max(0, ...entries.keys()) + 1;
   checkDup(); renderAmount(); renderSum();
 }
