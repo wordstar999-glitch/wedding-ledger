@@ -136,8 +136,9 @@
   #save:active { filter: brightness(.9); }
 
   /* 정산 화면 */
-  .totals { display: grid; grid-template-columns: 1fr 2fr; gap: 0.625rem; }
-  .totals div { text-align: center; background: var(--surface); border: 1px solid var(--border); border-radius: 0.875rem; padding: 0.625rem 0.875rem; }
+  .totals { display: grid; grid-template-columns: 1fr 1fr; gap: 0.625rem; }
+  .totals div { min-width: 0; text-align: center; background: var(--surface); border: 1px solid var(--border); border-radius: 0.875rem; padding: 0.625rem 0.4rem; }
+  .totals b.long { font-size: calc(var(--t) * 0.8); }
   .totals small { display: block; color: var(--text2); font-size: var(--s); }
   .totals b { font-size: var(--t); }
   .tools { display: flex; gap: 0.625rem; }
@@ -148,13 +149,13 @@
   .tools button.fill { background: var(--accent); color: var(--on-accent); }
   .srch-cap { font-size: var(--s); font-weight: 800; color: var(--strong); margin-bottom: -0.25rem; }
   #q::placeholder { color: var(--strong); font-weight: 800; opacity: 1; }
-  .srch { display: flex; flex-wrap: wrap; gap: 8px; }
-  #fNo { flex: 0 0 auto; min-height: 3.25rem; padding: 0 .6rem; white-space: nowrap; border-radius: 12px; border: 2px solid var(--border); background: var(--surface); color: var(--text); font-size: var(--t); font-weight: 800; }
+  .srch { display: grid; grid-template-columns: 1fr 1fr; gap: 0.625rem; }
+  #fNo { width: 100%; min-width: 0; min-height: 3.25rem; padding: 0 .4rem; white-space: nowrap; border-radius: 12px; border: 2px solid var(--border); background: var(--surface); color: var(--text); font-size: var(--t); font-weight: 800; }
   #fNo.on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
   .tools #fDup { flex: 1; min-height: 3.5rem; white-space: nowrap; border-color: var(--comp-line); background: var(--surface); color: var(--comp-text); }
   .tools #fDup.on { background: var(--comp-text); border-color: var(--comp-text); color: var(--surface); }
   .dup-tag { display: inline-block; margin-left: 0.35rem; padding: 0 0.4rem; border-radius: 999px; background: var(--comp-bg); border: 1px solid var(--comp-line); color: var(--comp-text); font-size: calc(var(--s) * 0.85); font-weight: 900; line-height: 1.35; vertical-align: middle; position: relative; top: calc(var(--t) * -0.1); }
-  #q { flex: 1 1 6.5rem; min-width: 0;
+  #q { width: 100%; min-width: 0;
     height: 3.25rem; padding: 0 0.6rem; font-size: var(--t); border: 2px solid var(--border); border-radius: 0.75rem; background: var(--surface);
   }
   #q:focus { outline: none; border-color: var(--accent); }
@@ -522,7 +523,7 @@
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
-const APP_VERSION = 'v67'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
+const APP_VERSION = 'v68'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
 // '…니다.' 뒤에서 줄을 바꾼다(화면에는 white-space: pre-line으로 표시).
@@ -828,7 +829,9 @@ function renderSum() {
   const all = sorted();
   const live = all.filter(e => !e.void);
   $('tCount').textContent = fmt(live.length) + '건';
-  $('tSum').textContent = fmtMan(live.reduce((s, e) => s + e.amount, 0)) + '만원';
+  const sumText = fmtMan(live.reduce((s, e) => s + e.amount, 0)) + '만원';
+  $('tSum').textContent = sumText;
+  $('tSum').classList.toggle('long', sumText.length >= 9);
   const q = $('q').value.trim().toLowerCase();
   const dups = dupCounts(live);
   const isDup = e => !e.void && (dups.get(nameKey(e.name)) || 0) > 1;
