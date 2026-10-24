@@ -406,7 +406,7 @@
         <div><b>백업 저장</b> 앱 안에 사본 저장 (최근 10개)</div>
         <div><b>복원</b> 선택한 사본으로 되돌리기</div>
         <div><b>파일로 내보내기</b> 앱 밖에 보관 (앱을 지워도 남음)</div>
-        <div><b>새로 시작</b> 삭제 전에 자동 백업</div>
+        <div><b>새로 시작</b> 앱 안의 내용 삭제 전에 자동 백업</div>
       </div>
       <div id="bMsg" class="upd-msg" role="status">내보낸 파일에는 하객 이름·금액이 들어 있습니다. 보관에 주의하세요.</div>
     </div>
@@ -526,7 +526,7 @@
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
-const APP_VERSION = 'v74'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
+const APP_VERSION = 'v75'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
 // '…니다.' 뒤에서 줄을 바꾼다(화면에는 white-space: pre-line으로 표시).
