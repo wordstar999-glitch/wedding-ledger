@@ -284,7 +284,7 @@
   .chip { display: flex; align-items: center; justify-content: space-between; gap: 2px; min-width: 0; min-height: 2.75rem; padding: 0.15rem 0.2rem 0.15rem 0.45rem; border-radius: 999px; border: 2px solid var(--border); background: var(--surface); font-size: calc(var(--t) * 0.9); font-weight: 800; }
   .chip button { flex: 0 0 auto; width: 1.7rem; height: 1.7rem; border-radius: 50%; border: 0; background: var(--accent-bg); color: var(--danger); font-size: var(--t); font-weight: 800; line-height: 1; }
   .legend { font-size: var(--s); line-height: 1.55; color: var(--text); word-break: keep-all; overflow-wrap: break-word; }
-  .legend b { color: var(--strong); margin-right: 0.35rem; }
+  .legend b { color: var(--term); margin-right: 0.35rem; }
   .copy-btn { min-height: 3.25rem; border-radius: 0.75rem; border: 2px solid var(--accent); background: var(--surface); color: var(--accent-fg); font-size: var(--t); font-weight: 800; }
   .danger-btn { min-height: 3.5rem; border-radius: 12px; border: 2px solid var(--danger); background: var(--surface); color: var(--danger); font-size: var(--t); font-weight: 800; }
   #pNew { flex: 1; min-width: 0; height: 3.5rem; font-size: var(--t); font-weight: 700; text-align: right; padding: 0 .75rem; border: 2px solid var(--border); border-radius: 12px; background: var(--surface); }
@@ -546,7 +546,7 @@
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
-const APP_VERSION = 'v95'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
+const APP_VERSION = 'v96'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
 // '…니다.' 뒤에서 줄을 바꾼다(화면에는 white-space: pre-line으로 표시).
