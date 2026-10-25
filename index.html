@@ -444,7 +444,7 @@
       <label>금액(만)<input id="eAmt" type="text" inputmode="decimal" autocomplete="off"></label>
       <label>비고<input id="eMemo" type="text" maxlength="100" autocomplete="off" enterkeyhint="done"></label>
     </div>
-    <button type="button" class="mic" id="eMic">🎤 눌러서 이름 말하기</button>
+    <button type="button" class="mic" id="eMic">🎤 눌러서 이름 말하기 (자동 저장)</button>
     <div id="dlgErr" role="alert"></div>
     <div class="btns">
       <button type="button" class="del" id="eDel">삭제</button>
@@ -532,7 +532,7 @@
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
-const APP_VERSION = 'v86'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
+const APP_VERSION = 'v87'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
 // '…니다.' 뒤에서 줄을 바꾼다(화면에는 white-space: pre-line으로 표시).
@@ -976,7 +976,7 @@ let rec = null;
 const cleanName = t => t.replace(/[\s.,!?]/g, '').slice(0, 40);
 function micState(on, msg) {
   $('eMic').classList.toggle('on', on);
-  $('eMic').textContent = on ? '🎤 듣는 중... 이름을 말하세요' : '🎤 눌러서 이름 말하기';
+  $('eMic').textContent = on ? '🎤 듣는 중... 이름을 말하세요' : '🎤 눌러서 이름 말하기 (자동 저장)';
   if (msg !== undefined) $('dlgErr').textContent = msg;
 }
 function stopMic() {
