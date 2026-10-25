@@ -70,8 +70,8 @@
 
   /* 상단 바와 도움말 */
   #topbar { flex: 0 0 auto; display: flex; align-items: center; gap: 0.25rem; min-height: 2.75rem; border-bottom: 1px solid var(--border); background: var(--surface); }
-  #menuBtn { flex: 0 0 auto; width: 3rem; min-height: 2.75rem; border: 0; background: none; color: var(--accent-fg); font-size: 1.5rem; font-weight: 900; line-height: 1; }
-  #topTitle { font-size: var(--t); font-weight: 800; }
+  #menuBtn { flex: 0 0 auto; display: flex; align-items: center; gap: 0.5rem; min-height: 2.75rem; padding: 0 0.75rem; border: 0; background: none; color: var(--accent-fg); font-size: var(--t); font-weight: 800; line-height: 1; }
+  #menuBtn b { font-size: 1.5rem; font-weight: 900; line-height: 1; }
   dialog.help { width: 100vw !important; max-width: 100vw !important; height: 100dvh !important; max-height: 100dvh !important; margin: 0 !important; padding: 0 !important; border-radius: 0 !important; background: var(--bg); }
   dialog.help[open] { display: flex; flex-direction: column; }
   .help-head { flex: 0 0 auto; display: flex; align-items: center; justify-content: space-between; min-height: 3.25rem; padding: 0 0.5rem 0 1rem; background: var(--surface); border-bottom: 1px solid var(--border); font-size: var(--t); }
@@ -93,7 +93,7 @@
   /* 하단 탭 */
   nav { display: flex; border-top: 1px solid var(--border); background: var(--surface); padding-bottom: env(safe-area-inset-bottom); }
   nav button { flex: 1; height: 3.75rem; border: 0; background: none; font-size: var(--t); font-weight: 700; color: var(--text2); }
-  nav button.on { color: var(--accent-fg); box-shadow: inset 0 3px 0 var(--gold); }
+  nav button.on { color: var(--comp-text); background: var(--comp-bg); font-weight: 900; box-shadow: inset 0 4px 0 var(--comp-line); }
 
   /* 입력 화면: 글자 크기가 클수록 화면을 채우고, 작을수록 전체 칸이 줄어 저장 버튼이 위로 올라온다 */
   .fit { display: flex; flex-direction: column; gap: 0.75rem; height: calc(100% * var(--fs, 1) / 1.15); min-height: min-content; }
@@ -310,8 +310,7 @@
 <body>
 
 <header id="topbar">
-  <button id="menuBtn" type="button" aria-label="도움말 메뉴">☰</button>
-  <span id="topTitle">입력</span>
+  <button id="menuBtn" type="button" aria-label="도움말 메뉴"><b>☰</b><span>도움말</span></button>
 </header>
 
 <div id="installBar" hidden>
@@ -547,7 +546,7 @@
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
-const APP_VERSION = 'v93'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
+const APP_VERSION = 'v94'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
 // '…니다.' 뒤에서 줄을 바꾼다(화면에는 white-space: pre-line으로 표시).
@@ -1124,12 +1123,10 @@ function drawNo() {
 (function loop() { drawNo(); requestAnimationFrame(loop); })();
 /* ---------- 탭 ---------- */
 let curTab = 'input';
-const TAB_TITLE = { input: '입력', sum: '정산', set: '설정' };
 function show(tab) {
   const from = curTab;
   curTab = tab;
   $('undoBar').hidden = true;
-  $('topTitle').textContent = TAB_TITLE[tab];
   $('vInput').hidden = tab !== 'input';
   $('vSum').hidden = tab !== 'sum';
   $('vSet').hidden = tab !== 'set';
