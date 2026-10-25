@@ -396,6 +396,7 @@
       </div>
       <div id="pMsg" class="upd-msg" role="status"></div>
       <button id="pReset" type="button" class="link-btn">기본값으로 되돌리기</button>
+      <div id="pDefault" class="upd-msg"></div>
     </div>
   </details>
   <details class="sec" data-k="backup">
@@ -532,7 +533,7 @@
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
-const APP_VERSION = 'v88'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
+const APP_VERSION = 'v89'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
 // '…니다.' 뒤에서 줄을 바꾼다(화면에는 white-space: pre-line으로 표시).
@@ -617,6 +618,7 @@ function toast(msg, err) {
 const DEFAULT_PRESETS = [30000, 50000, 100000, 150000, 200000, 300000, 500000];
 const MAX_PRESETS = 9, MAX_AMOUNT = 999990000;
 let presets = DEFAULT_PRESETS.slice();
+$('pDefault').textContent = '기본값: ' + DEFAULT_PRESETS.map(v => v / 10000).join(' · ') + '만원';
 try {
   const v = JSON.parse(localStorage.getItem('presets'));
   if (Array.isArray(v) && v.length && v.length <= MAX_PRESETS && v.every(n => Number.isInteger(n) && n > 0 && n <= MAX_AMOUNT)) presets = v;
