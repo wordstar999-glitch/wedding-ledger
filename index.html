@@ -207,6 +207,7 @@
   dialog .erow input { width: 100%; min-width: 0; padding: 0 .05rem; font-size: var(--t); text-align: center; height: 3.25rem; margin-top: 4px; }
   .erow input[readonly] { background: var(--border); color: var(--text2); }
   #list li.void { opacity: .6; }
+  #list li.hl { outline: 3px solid var(--comp-line); outline-offset: -3px; background: var(--comp-bg); }
   .erow input[type=number] { -moz-appearance: textfield; appearance: textfield; }
   .erow input::-webkit-outer-spin-button, .erow input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
   dialog .mic { width: 100%; min-height: 3.25rem; margin-top: .5rem; border-radius: 12px; border: 2px solid var(--comp-line); background: var(--comp-bg); color: var(--comp-text); font-size: var(--t); font-weight: 900; }
@@ -546,7 +547,7 @@
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
-const APP_VERSION = 'v92'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
+const APP_VERSION = 'v93'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
 // '…니다.' 뒤에서 줄을 바꾼다(화면에는 white-space: pre-line으로 표시).
@@ -814,9 +815,13 @@ async function save() {
 }
 $('save').addEventListener('click', save);
 // 가장 최근에 저장한 번호의 수정창을 연다(자동 저장 후 다음 빈 항목으로 넘어가지 않도록 자동 모드는 끈다).
-$('prevEdit').addEventListener('click', () => {
+function lastSaved() {
   let last = null;
   entries.forEach(e => { if (!e.void && e.amount > 0 && (!last || e.ts > last.ts || (e.ts === last.ts && e.no > last.no))) last = e; });
+  return last;
+}
+$('prevEdit').addEventListener('click', () => {
+  const last = lastSaved();
   if (!last) return toast('수정할 이전 입력이 없습니다', true);
   openEdit(last.no);
   autoArmed = false;
@@ -1121,6 +1126,7 @@ function drawNo() {
 let curTab = 'input';
 const TAB_TITLE = { input: '입력', sum: '정산', set: '설정' };
 function show(tab) {
+  const from = curTab;
   curTab = tab;
   $('undoBar').hidden = true;
   $('topTitle').textContent = TAB_TITLE[tab];
@@ -1130,7 +1136,17 @@ function show(tab) {
   $('tabInput').classList.toggle('on', tab === 'input');
   $('tabSum').classList.toggle('on', tab === 'sum');
   $('tabSet').classList.toggle('on', tab === 'set');
-  if (tab === 'sum') renderSum();
+  if (tab === 'sum') {
+    renderSum();
+    // 입력 탭에서 넘어오면 방금 저장한 번호로 목록을 옮기고 잠깐 강조한다(검색·필터 중에는 건너뜀).
+    const last = from === 'input' && !$('q').value.trim() && !noNameOnly && !dupOnly ? lastSaved() : null;
+    const li = last && $('list').querySelector(`li[data-no="${last.no}"]`);
+    if (li) {
+      li.scrollIntoView({ block: 'center' });
+      li.classList.add('hl');
+      setTimeout(() => li.classList.remove('hl'), 2000);
+    }
+  }
 }
 $('tabInput').addEventListener('click', () => show('input'));
 $('tabSum').addEventListener('click', () => show('sum'));
