@@ -164,7 +164,7 @@
   .tools button.fill { background: var(--accent); color: var(--on-accent); }
   #fNo, .tools #fDup { display: flex; align-items: center; justify-content: center; gap: 0.3em; line-height: 1.2; }
   #fNo span, #fNo b, .tools #fDup span, .tools #fDup b { display: block; line-height: 1.2; }
-  .tools #btnXlsx { background: var(--excel-bg); border-color: var(--excel-line); color: var(--excel-fg); }
+  .tools #btnXlsx, .tools #btnXlsxShare { background: var(--excel-bg); border-color: var(--excel-line); color: var(--excel-fg); font-size: calc(var(--t) * 0.84); white-space: nowrap; }
   .srch-cap { font-size: var(--s); font-weight: 800; color: var(--comp-text); margin-top: -0.25rem; }
   #q::placeholder { color: var(--strong); font-weight: 800; opacity: 1; }
   .srch { display: grid; grid-template-columns: 1fr 1fr; gap: 0.625rem; }
@@ -347,6 +347,10 @@
   </div>
   <div class="tools">
     <button id="btnXlsx" type="button" class="fill">엑셀 저장</button>
+    <button id="btnXlsxShare" type="button" class="fill">엑셀 공유</button>
+  </div>
+  <div class="tools">
+    <button id="btnBackupSum" type="button">백업 저장</button>
     <button id="fDup" type="button" aria-pressed="false"><span>동명이인</span><b id="fDupN">0</b></button>
   </div>
   <div class="srch">
@@ -546,7 +550,7 @@
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
-const APP_VERSION = 'v96'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
+const APP_VERSION = 'v97'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
 // '…니다.' 뒤에서 줄을 바꾼다(화면에는 white-space: pre-line으로 표시).
@@ -1121,6 +1125,20 @@ function drawNo() {
   } catch {}
 }
 (function loop() { drawNo(); requestAnimationFrame(loop); })();
+$('btnXlsxShare').addEventListener('click', async () => {
+  if (!entries.size) return toast('내보낼 내역이 없습니다', true);
+  const f = makeFile();
+  let ok = false;
+  try { ok = !!(navigator.canShare && navigator.share && navigator.canShare({ files: [f] })); } catch {}
+  if (!ok) return toast('이 기기에서는 공유할 수 없습니다. 엑셀 저장 후 파일을 직접 보내세요', true);
+  try { await navigator.share({ files: [f], title: '축의금 정산' }); }
+  catch (e) { if (!(e && e.name === 'AbortError')) toast('공유하지 못했습니다', true); }
+});
+$('btnBackupSum').addEventListener('click', async () => {
+  if (!entries.size) return toast('백업할 내역이 없습니다', true);
+  try { await saveBackupFile('manual'); } catch { return toast('백업하지 못했습니다. 설정의 파일로 내보내기를 사용하세요', true); }
+  toast('백업했습니다');
+});
 /* ---------- 탭 ---------- */
 let curTab = 'input';
 function show(tab) {
