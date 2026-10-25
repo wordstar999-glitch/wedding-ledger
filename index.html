@@ -162,23 +162,23 @@
     color: var(--accent-fg); font-size: var(--t); font-weight: 800;
   }
   .tools button.fill { background: var(--accent); color: var(--on-accent); }
-  #fNo, .tools #fDup { display: flex; align-items: center; justify-content: center; gap: 0.3em; line-height: 1.2; }
-  #fNo span, #fNo b, .tools #fDup span, .tools #fDup b { display: block; line-height: 1.2; }
-  .tools #btnXlsx, .tools #btnXlsxShare { background: var(--excel-bg); border-color: var(--excel-line); color: var(--excel-fg); font-size: min(calc(var(--t) * 0.8), 4.3vw); line-height: 1.2; }
-  /* 네 버튼이 폰 한 줄에 들어가도록 한 줄로 고정한다(엑셀 두 버튼은 글자를 더 작게). */
-  .tools button { min-width: 0; padding: 0 0.15rem; white-space: nowrap; }
-  .tools #btnBackupSum { font-size: min(calc(var(--t) * 0.8), 4.3vw); }
-  .tools #fDup { font-size: min(calc(var(--t) * 0.7), 3.75vw); gap: 0.2em; padding: 0 0.1rem; }
+  #fNo, #fDup { display: flex; align-items: center; justify-content: center; gap: 0.3em; line-height: 1.2; }
+  #fNo span, #fNo b, #fDup span, #fDup b { display: block; line-height: 1.2; }
+  .tools #btnXlsx, .tools #btnXlsxShare { background: var(--excel-bg); border-color: var(--excel-line); color: var(--excel-fg); }
+  /* 한 줄 세 칸(엑셀 저장 · 엑셀 공유 · 백업 저장)이 폰 한 줄에 들어가도록 글자를 화면 폭에 맞춘다. */
+  .tools button { min-width: 0; padding: 0 0.15rem; white-space: nowrap; font-size: min(calc(var(--t) * 0.85), 4.6vw); line-height: 1.2; }
   .srch-cap { font-size: var(--s); font-weight: 800; color: var(--comp-text); margin-top: -0.25rem; }
   #q::placeholder { color: var(--strong); font-weight: 800; opacity: 1; }
-  .srch { display: grid; grid-template-columns: 1fr 1fr; gap: 0.625rem; }
-  #fNo { width: 100%; min-width: 0; min-height: 3.25rem; padding: 0 .4rem; white-space: nowrap; border-radius: 12px; border: 2px solid var(--border); background: var(--surface); color: var(--text); font-size: var(--t); font-weight: 800; }
+  .srch { display: grid; grid-template-columns: 1fr 1.2fr 1.2fr; gap: 0.35rem; }
+  #fNo { width: 100%; min-width: 0; min-height: 3.25rem; padding: 0 .1rem; white-space: nowrap; border-radius: 12px; border: 2px solid var(--border); background: var(--surface); color: var(--text); font-weight: 800; }
   #fNo.on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
-  .tools #fDup { flex: 1; min-height: 3.5rem; white-space: nowrap; border-color: var(--comp-line); background: var(--surface); color: var(--comp-text); }
-  .tools #fDup.on { background: var(--comp-text); border-color: var(--comp-text); color: var(--surface); }
+  #fDup { width: 100%; min-width: 0; min-height: 3.25rem; padding: 0 .1rem; white-space: nowrap; border-radius: 12px; border: 2px solid var(--comp-line); background: var(--surface); color: var(--comp-text); font-weight: 800; }
+  #fDup.on { background: var(--comp-text); border-color: var(--comp-text); color: var(--surface); }
+  /* 이름 검색 줄 세 칸의 글자 크기를 맞춘다. */
+  #q, #fNo, #fDup { font-size: min(calc(var(--t) * 0.85), 4.6vw); }
   .dup-tag { display: inline-block; margin-left: 0.35rem; padding: 0 0.4rem; border-radius: 999px; background: var(--comp-bg); border: 1px solid var(--comp-line); color: var(--comp-text); font-size: calc(var(--s) * 0.85); font-weight: 900; line-height: 1.35; vertical-align: middle; position: relative; top: calc(var(--t) * -0.1); }
   #q { width: 100%; min-width: 0; text-align: center;
-    height: 3.25rem; padding: 0 0.6rem; font-size: var(--t); border: 2px solid var(--border); border-radius: 0.75rem; background: var(--surface);
+    height: 3.25rem; padding: 0 0.2rem; border: 2px solid var(--border); border-radius: 0.75rem; background: var(--surface);
   }
   #q:focus { outline: none; border-color: var(--accent); }
   #list { flex: 1; min-height: 0; overflow-y: auto; margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
@@ -351,14 +351,14 @@
     <div><small>총 금액</small><b id="tSum">0</b></div>
   </div>
   <div class="tools">
-    <button id="btnXlsx" type="button" class="fill">엑셀<br>저장</button>
-    <button id="btnXlsxShare" type="button" class="fill">엑셀<br>공유</button>
+    <button id="btnXlsx" type="button" class="fill">엑셀 저장</button>
+    <button id="btnXlsxShare" type="button" class="fill">엑셀 공유</button>
     <button id="btnBackupSum" type="button">백업 저장</button>
-    <button id="fDup" type="button" aria-pressed="false"><span>동명이인</span><b id="fDupN">0</b></button>
   </div>
   <div class="srch">
     <input id="q" type="search" placeholder="이름 검색" aria-label="검색">
     <button id="fNo" type="button" aria-pressed="false"><span>이름 없음</span><b id="fNoN">0</b></button>
+    <button id="fDup" type="button" aria-pressed="false"><span>동명이인</span><b id="fDupN">0</b></button>
   </div>
   <div class="srch-cap">초성(ㄱㅊㅅ)으로도 찾을 수 있습니다.</div>
   <ul id="list"></ul>
@@ -553,7 +553,7 @@
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
-const APP_VERSION = 'v100'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
+const APP_VERSION = 'v101'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
 // '…니다.' 뒤에서 줄을 바꾼다(화면에는 white-space: pre-line으로 표시).
