@@ -156,7 +156,7 @@
   .totals b.long { font-size: calc(var(--t) * 0.8); }
   .totals small { display: block; color: var(--text2); font-size: var(--s); }
   .totals b { font-size: var(--t); }
-  .tools { display: flex; gap: 0.625rem; }
+  .tools { display: flex; gap: 0.35rem; }
   .tools button {
     flex: 1; min-height: 3.5rem; border-radius: 0.75rem; border: 2px solid var(--accent); background: var(--surface);
     color: var(--accent-fg); font-size: var(--t); font-weight: 800;
@@ -164,7 +164,11 @@
   .tools button.fill { background: var(--accent); color: var(--on-accent); }
   #fNo, .tools #fDup { display: flex; align-items: center; justify-content: center; gap: 0.3em; line-height: 1.2; }
   #fNo span, #fNo b, .tools #fDup span, .tools #fDup b { display: block; line-height: 1.2; }
-  .tools #btnXlsx, .tools #btnXlsxShare { background: var(--excel-bg); border-color: var(--excel-line); color: var(--excel-fg); font-size: calc(var(--t) * 0.84); white-space: nowrap; }
+  .tools #btnXlsx, .tools #btnXlsxShare { background: var(--excel-bg); border-color: var(--excel-line); color: var(--excel-fg); font-size: min(calc(var(--t) * 0.68), 3.7vw); }
+  /* 네 버튼이 폰 한 줄에 들어가도록 한 줄로 고정한다(엑셀 두 버튼은 글자를 더 작게). */
+  .tools button { min-width: 0; padding: 0 0.15rem; white-space: nowrap; }
+  .tools #btnBackupSum { font-size: min(calc(var(--t) * 0.8), 4.3vw); }
+  .tools #fDup { font-size: min(calc(var(--t) * 0.7), 3.75vw); gap: 0.2em; padding: 0 0.1rem; }
   .srch-cap { font-size: var(--s); font-weight: 800; color: var(--comp-text); margin-top: -0.25rem; }
   #q::placeholder { color: var(--strong); font-weight: 800; opacity: 1; }
   .srch { display: grid; grid-template-columns: 1fr 1fr; gap: 0.625rem; }
@@ -349,8 +353,6 @@
   <div class="tools">
     <button id="btnXlsx" type="button" class="fill">엑셀 저장</button>
     <button id="btnXlsxShare" type="button" class="fill">엑셀 공유</button>
-  </div>
-  <div class="tools">
     <button id="btnBackupSum" type="button">백업 저장</button>
     <button id="fDup" type="button" aria-pressed="false"><span>동명이인</span><b id="fDupN">0</b></button>
   </div>
@@ -551,7 +553,7 @@
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
-const APP_VERSION = 'v98'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
+const APP_VERSION = 'v99'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
 // '…니다.' 뒤에서 줄을 바꾼다(화면에는 white-space: pre-line으로 표시).
