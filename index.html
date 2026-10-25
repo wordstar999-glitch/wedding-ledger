@@ -164,19 +164,20 @@
   .tools button.fill { background: var(--accent); color: var(--on-accent); }
   #fNo, #fDup { display: flex; align-items: center; justify-content: center; gap: 0.3em; line-height: 1.2; }
   #fNo span, #fNo b, #fDup span, #fDup b { display: block; line-height: 1.2; }
-  .tools #btnXlsx, .tools #btnXlsxShare { background: var(--excel-bg); border-color: var(--excel-line); color: var(--excel-fg); }
+  .tools #btnXlsx { background: var(--excel-bg); border-color: var(--excel-line); color: var(--excel-fg); }
   /* 한 줄 세 칸(엑셀 저장 · 엑셀 공유 · 백업 저장)이 폰 한 줄에 들어가도록 글자를 화면 폭에 맞춘다. */
-  .tools button { min-width: 0; padding: 0 0.15rem; white-space: nowrap; font-size: min(calc(var(--t) * 0.85), 4.6vw); line-height: 1.2; }
+  .tools button { min-width: 0; padding: 0 0.15rem; white-space: nowrap; font-size: min(calc(var(--t) * 0.8), 4.2vw); line-height: 1.2; }
   .srch-cap { font-size: var(--s); font-weight: 800; color: var(--comp-text); margin-top: -0.25rem; }
   #q::placeholder { color: var(--strong); font-weight: 800; opacity: 1; }
-  .srch { display: grid; grid-template-columns: 1.35fr 1.05fr 1.05fr; gap: 0.35rem; }
+  .srch { display: grid; grid-template-columns: 1.6fr 1fr; gap: 0.35rem; }
   #fNo { width: 100%; min-width: 0; min-height: 3.25rem; padding: 0 .1rem; white-space: nowrap; border-radius: 12px; border: 2px solid var(--border); background: var(--surface); color: var(--text); font-weight: 800; }
   #fNo.on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
   #fDup { width: 100%; min-width: 0; min-height: 3.25rem; padding: 0 .1rem; white-space: nowrap; border-radius: 12px; border: 2px solid var(--comp-line); background: var(--surface); color: var(--comp-text); font-weight: 800; }
   #fDup.on { background: var(--comp-text); border-color: var(--comp-text); color: var(--surface); }
   /* 이름 검색 줄 세 칸의 글자 크기를 맞춘다. */
   #q { font-size: min(calc(var(--t) * 0.85), 4.6vw); }
-  #fNo, #fDup { font-size: min(calc(var(--t) * 0.8), 4.1vw); gap: 0.2em; }
+  #fNo { font-size: min(calc(var(--t) * 0.85), 4.6vw); }
+  #fDup { font-size: min(calc(var(--t) * 0.8), 4.2vw); gap: 0.2em; }
   .dup-tag { display: inline-block; margin-left: 0.35rem; padding: 0 0.4rem; border-radius: 999px; background: var(--comp-bg); border: 1px solid var(--comp-line); color: var(--comp-text); font-size: calc(var(--s) * 0.85); font-weight: 900; line-height: 1.35; vertical-align: middle; position: relative; top: calc(var(--t) * -0.1); }
   #q { width: 100%; min-width: 0; text-align: center;
     height: 3.25rem; padding: 0 0.2rem; border: 2px solid var(--border); border-radius: 0.75rem; background: var(--surface);
@@ -353,13 +354,12 @@
   </div>
   <div class="tools">
     <button id="btnXlsx" type="button" class="fill">엑셀 저장</button>
-    <button id="btnXlsxShare" type="button" class="fill">엑셀 공유</button>
     <button id="btnBackupSum" type="button">백업 저장</button>
+    <button id="fDup" type="button" aria-pressed="false"><span>동명이인</span><b id="fDupN">0</b></button>
   </div>
   <div class="srch">
     <input id="q" type="search" placeholder="이름 검색" aria-label="검색">
     <button id="fNo" type="button" aria-pressed="false"><span>이름 없음</span><b id="fNoN">0</b></button>
-    <button id="fDup" type="button" aria-pressed="false"><span>동명이인</span><b id="fDupN">0</b></button>
   </div>
   <div class="srch-cap">초성(ㄱㅊㅅ)으로도 찾을 수 있습니다.</div>
   <ul id="list"></ul>
@@ -499,6 +499,7 @@
         <li><b>말하기 입력</b>은 인터넷이 필요합니다.</li>
         <li><b>말하기로 이름을 입력</b>하면 0.1초 뒤 자동 저장되고 다음 빈 항목이 열립니다. 키보드로 입력할 때는 저장 버튼을 누르세요.</li>
         <li><b>동명이인</b> 버튼을 누르면 동명이인만 모아 표시하고, 이름 옆에 '동명'이 붙습니다.</li>
+        <li><b>엑셀 저장</b> 뒤에는 내 파일 → 다운로드에서 파일을 길게 눌러 보내세요.</li>
         <li><b>삭제</b>해도 번호는 남습니다. 금액을 다시 입력하면 되살아납니다.</li>
       </ul></div>
     </details>
@@ -554,7 +555,7 @@
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
-const APP_VERSION = 'v103'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
+const APP_VERSION = 'v104'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
 // '…니다.' 뒤에서 줄을 바꾼다(화면에는 white-space: pre-line으로 표시).
@@ -1104,7 +1105,7 @@ function download(file) {
 $('btnXlsx').addEventListener('click', () => {
   if (!entries.size) return toast('내보낼 내역이 없습니다', true);
   download(makeFile());
-  showUndo('엑셀 저장됨. 파일 백업도 받아 두세요.', async () => { const r = await exportBackupFile(); if (r !== 'cancel') toast('파일로 내보냈습니다'); }, '내보내기', 7000);
+  showUndo('엑셀 저장됨. 내 파일 → 다운로드에서 보내세요.', async () => { const r = await exportBackupFile(); if (r !== 'cancel') toast('파일로 내보냈습니다'); }, '백업 내보내기', 7000);
 });
 /* 일련번호 숫자의 세로 가운데: 입력칸 글자는 투명으로 두고, 숫자 모양의 실제 높이를 재서 SVG로 칸 한가운데에 그린다.
    (기기 글꼴마다 줄 안에서 숫자가 놓이는 높이가 달라 CSS만으로는 맞출 수 없다.) */
@@ -1129,22 +1130,6 @@ function drawNo() {
   } catch {}
 }
 (function loop() { drawNo(); requestAnimationFrame(loop); })();
-$('btnXlsxShare').addEventListener('click', async () => {
-  if (!entries.size) return toast('내보낼 내역이 없습니다', true);
-  const f = makeFile();
-  let ok = false;
-  try { ok = !!(navigator.canShare && navigator.share && navigator.canShare({ files: [f] })); } catch {}
-  // 공유할 수 없으면 파일을 저장해 두고 직접 보내도록 안내한다.
-  const saveInstead = why => { download(f); toast(why + ' 파일을 저장했습니다. 내 파일 → 다운로드에서 보내세요', true, 5000); };
-  if (!ok) return saveInstead('이 기기에서는 공유할 수 없어');
-  try { await navigator.share({ files: [f], title: '축의금 정산' }); }
-  catch (e) {
-    if (e && e.name === 'AbortError') return;
-    // 일부 기기는 제목을 함께 보내면 거부하므로 파일만으로 한 번 더 시도한다. 그래도 안 되면 파일을 저장하고 오류 종류를 알려준다.
-    try { await navigator.share({ files: [f] }); }
-    catch (e2) { if (!(e2 && e2.name === 'AbortError')) saveInstead('공유하지 못해(' + ((e2 && e2.name) || '알 수 없음') + ')'); }
-  }
-});
 $('btnBackupSum').addEventListener('click', async () => {
   if (!entries.size) return toast('백업할 내역이 없습니다', true);
   try { await saveBackupFile('manual'); } catch { return toast('백업하지 못했습니다. 설정의 파일로 내보내기를 사용하세요', true); }
