@@ -533,7 +533,7 @@
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
-const APP_VERSION = 'v90'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
+const APP_VERSION = 'v91'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
 // '…니다.' 뒤에서 줄을 바꾼다(화면에는 white-space: pre-line으로 표시).
@@ -1081,6 +1081,27 @@ $('btnXlsx').addEventListener('click', () => {
   download(makeFile());
   showUndo('엑셀 저장됨. 파일 백업도 받아 두세요.', async () => { const r = await exportBackupFile(); if (r !== 'cancel') toast('파일로 내보냈습니다'); }, '내보내기', 7000);
 });
+/* 일련번호 숫자의 세로 가운데 보정: 기기 글꼴마다 줄 상자 안에서 숫자가 놓이는 높이가 달라, 실제 글꼴을 재서 위·아래 여백으로 맞춘다. */
+const noCtx = document.createElement('canvas').getContext('2d');
+function centerNo() {
+  const n = $('no'), cs = getComputedStyle(n), px = parseFloat(cs.fontSize), K = 10;
+  // 줄 상자 높이는 Blink가 글꼴 ascent/descent를 정수로 반올림해 계산하므로 같은 크기로 재고, 숫자 잉크 높이는 10배로 정밀하게 잰다.
+  noCtx.font = `${cs.fontWeight} ${px}px ${cs.fontFamily}`;
+  const line = noCtx.measureText('0');
+  noCtx.font = `${cs.fontWeight} ${px * K}px ${cs.fontFamily}`;
+  const ink = noCtx.measureText('0123456789');
+  if (!(line.fontBoundingBoxAscent > 0)) return;
+  const asc = line.fontBoundingBoxAscent, desc = line.fontBoundingBoxDescent;
+  const d = (asc + (ink.actualBoundingBoxDescent - ink.actualBoundingBoxAscent) / K / 2) - (asc + desc) / 2; // 음수: 숫자가 위쪽으로 치우침
+  n.style.paddingTop = d < 0 ? (-2 * d).toFixed(2) + 'px' : '0';
+  n.style.paddingBottom = d > 0 ? (2 * d).toFixed(2) + 'px' : '0';
+}
+try {
+  new ResizeObserver(centerNo).observe($('no'));
+  new MutationObserver(centerNo).observe(document.documentElement, { attributes: true, attributeFilter: ['style'] });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(centerNo);
+  centerNo();
+} catch {}
 /* ---------- 탭 ---------- */
 let curTab = 'input';
 const TAB_TITLE = { input: '입력', sum: '정산', set: '설정' };
