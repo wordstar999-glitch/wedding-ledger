@@ -532,7 +532,7 @@
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
-const APP_VERSION = 'v87'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
+const APP_VERSION = 'v88'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
 // '…니다.' 뒤에서 줄을 바꾼다(화면에는 white-space: pre-line으로 표시).
@@ -1480,6 +1480,7 @@ $('bReset').addEventListener('click', async () => {
   hwReset(0);
   setEvent({ name: '', date: '' });
   refreshAll();
+  try { navigator.vibrate && navigator.vibrate(200); } catch {} // 초기화 완료를 진동 한 번으로 알린다(iPhone은 미지원).
   bMsg('초기화되었습니다. 이전 내용은 보관함에 백업되었습니다. 새 행사 정보는 행사 정보 항목에서 입력하세요.', 'ok');
 });
 
