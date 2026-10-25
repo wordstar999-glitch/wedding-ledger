@@ -33,7 +33,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir dist
-          for f in index.html xlsx.js sw.js manifest.json icon-192.png icon-512.png icon-maskable-512.png; do
+          for f in index.html xlsx.js sw.js manifest.json icon-192.png icon-512.png; do
             test -f "$f" || { echo "ERROR: missing $f"; exit 1; }
             cp "$f" dist/
           done
