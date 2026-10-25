@@ -532,7 +532,7 @@
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
-const APP_VERSION = 'v80'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
+const APP_VERSION = 'v81'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
 // '…니다.' 뒤에서 줄을 바꾼다(화면에는 white-space: pre-line으로 표시).
@@ -693,7 +693,7 @@ function renderAmount() {
     d.textContent = fmtMan(amount) + '만원';
   } else {
     const a = document.createElement('span'); a.className = 'h1'; a.textContent = '아래 금액을 누르면 입력됩니다.';
-    const b = document.createElement('span'); b.className = 'h2'; b.textContent = '잘못 눌렀다면 '이전 수정'을 누르세요.';
+    const b = document.createElement('span'); b.className = 'h2'; b.textContent = "잘못 눌렀다면 '이전 수정'을 누르세요.";
     d.append(a, b);
   }
   d.classList.toggle('empty', !amount);
