@@ -14,13 +14,13 @@
     --s: .9375rem;  /* 보조 글자 크기(설명, 작은 라벨) */
     --bg: #f2f8fd; --surface: #ffffff; --border: #cfe0ef; --text: #101c28; --text2: #4f6479;
     --excel-bg: #a8e063; --excel-line: #7dc43a; --excel-fg: #1b3300; --hint: #b45309; --strong: #0b3d6b; --comp-text: #b23a0b; --comp-line: #f97316; --comp-bg: #ffedd5; --accent: #1d6fb8; --on-accent: #fff; --accent-fg: #1d6fb8; --accent-bg: #dcecfa; --gold: #38bdf8;
-    --open-head: #fde9a0; --open-body: #fff8dc; --open-line: #e2b93b; --open-fg: #5a4300; --danger: #b91c1c; --ok: #15803d;
+    --open-head: #fde9a0; --open-body: #fff8dc; --open-line: #e2b93b; --open-fg: #5a4300; --danger: #b91c1c; --ok: #15803d; --term: #0a56d6;
   }
   @media (prefers-color-scheme: dark) {
     :root {
       --bg: #0f1822; --surface: #16232f; --border: #2a3d4f; --text: #e8f1f9; --text2: #9fb4c7;
       --excel-bg: #8fd14f; --excel-line: #6fb83a; --excel-fg: #12260a; --hint: #fbbf24; --strong: #cfe6ff; --comp-text: #fdba74; --comp-line: #fb923c; --comp-bg: #4a2a12; --accent: #2a78c4; --on-accent: #fff; --accent-fg: #8cc4f5; --accent-bg: #1b3a57; --gold: #5ac8fa;
-      --open-head: #6b5513; --open-body: #2a2410; --open-line: #c9a227; --open-fg: #ffeaa6; --danger: #f87171; --ok: #4ade80;
+      --open-head: #6b5513; --open-body: #2a2410; --open-line: #c9a227; --open-fg: #ffeaa6; --danger: #f87171; --ok: #4ade80; --term: #7dbbff;
     }
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -81,7 +81,7 @@
   .upd-msg, #rdNote, .help-body li, .bd-list .upd-msg { white-space: pre-line; word-break: keep-all; overflow-wrap: break-word; }
   .help-body ul { margin: 0; padding-left: 1.1rem; font-size: calc(var(--t) * 0.92); line-height: 1.6; }
   .help-body li { margin: 0.55rem 0; overflow-wrap: anywhere; }
-  .help-body li b { color: var(--accent-fg); }
+  .help-body li b { color: var(--term); }
 
   /* 앱 설치 안내(브라우저에서 열었고 설치 가능할 때만 표시) */
   #installBar { flex: 0 0 auto; display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem 0.5rem; padding: 0.5rem 0.75rem; background: var(--accent-bg); border-bottom: 1px solid var(--border); font-size: var(--s); color: var(--text); }
@@ -546,7 +546,7 @@
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
-const APP_VERSION = 'v94'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
+const APP_VERSION = 'v95'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
 // '…니다.' 뒤에서 줄을 바꾼다(화면에는 white-space: pre-line으로 표시).
