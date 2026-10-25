@@ -532,7 +532,7 @@
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
-const APP_VERSION = 'v81'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
+const APP_VERSION = 'v82'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
 // '…니다.' 뒤에서 줄을 바꾼다(화면에는 white-space: pre-line으로 표시).
@@ -811,6 +811,8 @@ $('prevEdit').addEventListener('click', () => {
   if (!last) return toast('수정할 이전 입력이 없습니다', true);
   openEdit(last.no);
   autoArmed = false;
+  // 이전 수정은 금액을 고치는 일이 많으므로 openEdit의 이름칸 포커스(setTimeout 0) 뒤에 금액칸으로 옮긴다.
+  setTimeout(() => { $('eAmt').focus(); $('eAmt').select(); placeDlg(); }, 30);
 });
 
 /* ---------- 정산 화면 ---------- */
