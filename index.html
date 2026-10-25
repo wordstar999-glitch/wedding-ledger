@@ -99,18 +99,28 @@
   .fit { display: flex; flex-direction: column; gap: 0.75rem; height: calc(100% * var(--fs, 1) / 1.15); min-height: min-content; }
   .no-row { display: flex; align-items: stretch; gap: 0.75rem; flex: 1.4 1 0; min-height: 4.25rem; }
   .no-row label { display: flex; align-items: center; font-size: var(--t); font-weight: 900; color: var(--comp-text); }
+  .no-wrap { position: relative; flex: 1; min-width: 0; display: flex; transition: transform .15s; }
+  .no-wrap.bump { transform: scale(1.06); }
+  /* 숫자는 입력칸 위에 SVG로 직접 그려 기기 글꼴과 관계없이 세로 가운데에 놓는다(입력칸 글자는 투명). */
+  #noSvg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
+  #noTxt { fill: var(--comp-text); font-size: inherit; font-weight: 900; font-family: inherit; }
+  .no-wrap.ov #no { color: transparent; caret-color: var(--comp-text); }
+  .no-wrap.ov #no.dup { caret-color: #fff; }
   #no {
-    flex: 1; min-width: 0; font-size: min(calc(var(--t) * 1.8), 9.5vw); font-weight: 900; text-align: center;
+    flex: 1; width: 100%; min-width: 0; font-size: min(calc(var(--t) * 1.8), 9.5vw); font-weight: 900; text-align: center;
     color: var(--comp-text); border: 3px solid var(--comp-line); border-radius: 0.875rem; background: var(--surface);
-    transition: transform .15s, background-color .15s;
+    transition: background-color .15s;
   }
   #prevEdit {
     flex: 0 0 auto; min-width: 5.5rem; padding: 0 .875rem; border: 3px solid var(--comp-line); border-radius: .875rem;
     background: var(--comp-bg); color: var(--comp-text); font-size: var(--t); font-weight: 900; line-height: 1.2;
   }
   #prevEdit:active { transform: scale(.97); }
-  #no.bump { transform: scale(1.06); background: var(--comp-bg); }
+  #no { -moz-appearance: textfield; appearance: textfield; }
+  #no::-webkit-outer-spin-button, #no::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  #no.bump { background: var(--comp-bg); }
   #no.dup { border-color: var(--danger); background: var(--danger); color: #fff; }
+  #no.dup ~ #noSvg #noTxt { fill: #fff; }
   .amt-disp {
     flex: 1 1 0; min-height: 3rem; border-radius: 0.875rem; background: var(--accent-bg); color: var(--accent-fg);
     display: flex; align-items: center; justify-content: center; font-size: var(--t); font-weight: 800;
@@ -313,7 +323,10 @@
   <div class="fit">
     <div class="no-row">
       <label for="no">No.</label>
-      <input id="no" type="number" inputmode="numeric" min="1" step="1" value="1" aria-label="일련번호">
+      <div class="no-wrap" id="noWrap">
+        <input id="no" type="number" inputmode="numeric" min="1" step="1" value="1" aria-label="일련번호">
+        <svg id="noSvg" aria-hidden="true"><text id="noTxt" x="50%" text-anchor="middle"></text></svg>
+      </div>
       <button id="prevEdit" type="button">이전 수정</button>
     </div>
     <div class="amt-disp empty" id="amtDisp">금액을 선택하세요</div>
@@ -533,7 +546,7 @@
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
-const APP_VERSION = 'v91'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
+const APP_VERSION = 'v92'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
 // '…니다.' 뒤에서 줄을 바꾼다(화면에는 white-space: pre-line으로 표시).
@@ -755,9 +768,9 @@ $('undoBtn').addEventListener('click', async () => {
 });
 
 function bumpNo() {
-  const n = $('no');
-  n.classList.add('bump');
-  setTimeout(() => n.classList.remove('bump'), 450);
+  const n = $('no'), w = $('noWrap');
+  n.classList.add('bump'); w.classList.add('bump');
+  setTimeout(() => { n.classList.remove('bump'); w.classList.remove('bump'); }, 450);
 }
 let saving = false;
 async function save() {
@@ -1081,27 +1094,29 @@ $('btnXlsx').addEventListener('click', () => {
   download(makeFile());
   showUndo('엑셀 저장됨. 파일 백업도 받아 두세요.', async () => { const r = await exportBackupFile(); if (r !== 'cancel') toast('파일로 내보냈습니다'); }, '내보내기', 7000);
 });
-/* 일련번호 숫자의 세로 가운데 보정: 기기 글꼴마다 줄 상자 안에서 숫자가 놓이는 높이가 달라, 실제 글꼴을 재서 위·아래 여백으로 맞춘다. */
+/* 일련번호 숫자의 세로 가운데: 입력칸 글자는 투명으로 두고, 숫자 모양의 실제 높이를 재서 SVG로 칸 한가운데에 그린다.
+   (기기 글꼴마다 줄 안에서 숫자가 놓이는 높이가 달라 CSS만으로는 맞출 수 없다.) */
 const noCtx = document.createElement('canvas').getContext('2d');
-function centerNo() {
-  const n = $('no'), cs = getComputedStyle(n), px = parseFloat(cs.fontSize), K = 10;
-  // 줄 상자 높이는 Blink가 글꼴 ascent/descent를 정수로 반올림해 계산하므로 같은 크기로 재고, 숫자 잉크 높이는 10배로 정밀하게 잰다.
-  noCtx.font = `${cs.fontWeight} ${px}px ${cs.fontFamily}`;
-  const line = noCtx.measureText('0');
-  noCtx.font = `${cs.fontWeight} ${px * K}px ${cs.fontFamily}`;
-  const ink = noCtx.measureText('0123456789');
-  if (!(line.fontBoundingBoxAscent > 0)) return;
-  const asc = line.fontBoundingBoxAscent, desc = line.fontBoundingBoxDescent;
-  const d = (asc + (ink.actualBoundingBoxDescent - ink.actualBoundingBoxAscent) / K / 2) - (asc + desc) / 2; // 음수: 숫자가 위쪽으로 치우침
-  n.style.paddingTop = d < 0 ? (-2 * d).toFixed(2) + 'px' : '0';
-  n.style.paddingBottom = d > 0 ? (2 * d).toFixed(2) + 'px' : '0';
+let noKey = '';
+function drawNo() {
+  try {
+    const n = $('no'), w = $('noWrap'), cs = getComputedStyle(n);
+    const H = n.getBoundingClientRect().height / (w.classList.contains('bump') ? 1.06 : 1), v = n.value;
+    const key = [v, H.toFixed(1), cs.fontSize, cs.fontFamily, cs.fontWeight].join('|');
+    if (key === noKey) return;
+    const px = parseFloat(cs.fontSize), K = 10;
+    noCtx.font = `${cs.fontWeight} ${px * K}px ${cs.fontFamily}`;
+    const m = noCtx.measureText('0123456789');
+    if (!(m.actualBoundingBoxAscent > 0) || !(H > 0)) return;
+    const t = $('noTxt');
+    t.textContent = v;
+    t.style.fontSize = px + 'px'; t.style.fontFamily = cs.fontFamily;
+    t.setAttribute('y', (H / 2 + (m.actualBoundingBoxAscent - m.actualBoundingBoxDescent) / K / 2).toFixed(2));
+    w.classList.add('ov');
+    noKey = key;
+  } catch {}
 }
-try {
-  new ResizeObserver(centerNo).observe($('no'));
-  new MutationObserver(centerNo).observe(document.documentElement, { attributes: true, attributeFilter: ['style'] });
-  if (document.fonts && document.fonts.ready) document.fonts.ready.then(centerNo);
-  centerNo();
-} catch {}
+(function loop() { drawNo(); requestAnimationFrame(loop); })();
 /* ---------- 탭 ---------- */
 let curTab = 'input';
 const TAB_TITLE = { input: '입력', sum: '정산', set: '설정' };
