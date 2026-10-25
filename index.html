@@ -235,7 +235,8 @@
   .fld { display: flex; flex-direction: column; gap: 4px; font-size: var(--s); color: var(--text2); }
   .fld input { min-height: 3.25rem; padding: 0 .75rem; font-size: var(--t); border: 2px solid var(--border); border-radius: 12px; background: var(--bg); color: var(--text); }
   .fld input:focus { outline: none; border-color: var(--accent); }
-  .ev-line { text-align: center; font-size: var(--s); color: var(--text2); overflow-wrap: anywhere; }
+  .ev-line { flex: 1; min-width: 0; padding-right: 0.75rem; text-align: right; font-size: var(--s); font-weight: 700; color: var(--text2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ev-line[hidden] { display: none; }
   #rdlg, #bdlg { width: min(96vw, 520px); }
   .bd-list { display: flex; flex-direction: column; gap: 0.4rem; max-height: 55vh; overflow-y: auto; margin-bottom: .5rem; }
   .bd-ev { margin-top: 0.25rem; font-size: var(--s); font-weight: 900; color: var(--strong); overflow-wrap: anywhere; }
@@ -311,6 +312,7 @@
 
 <header id="topbar">
   <button id="menuBtn" type="button" aria-label="도움말 메뉴"><b>☰</b><span>도움말</span></button>
+  <span id="evLine" class="ev-line" hidden></span>
 </header>
 
 <div id="installBar" hidden>
@@ -340,7 +342,6 @@
 </main>
 
 <main id="vSum" hidden>
-  <div id="evLine" class="ev-line" hidden></div>
   <div class="totals">
     <div><small>총 건수</small><b id="tCount">0</b></div>
     <div><small>총 금액</small><b id="tSum">0</b></div>
@@ -550,7 +551,7 @@
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
-const APP_VERSION = 'v97'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
+const APP_VERSION = 'v98'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
 // '…니다.' 뒤에서 줄을 바꾼다(화면에는 white-space: pre-line으로 표시).
