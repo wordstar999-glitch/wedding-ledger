@@ -223,8 +223,8 @@
   dialog .btns { margin-top: .4rem !important; }
   /* 수정 팝업은 화면 위쪽에 붙여서 글자판이 올라와도 삭제·취소·저장 버튼이 보이게 한다 */
   #dlg { margin: 0.5rem auto auto !important; }
-  #dlgForm { display: flex; flex-direction: column; min-height: 13.5rem; }
-  #dlgForm .mic { margin-top: auto; margin-bottom: auto; }
+  #dlgForm { display: flex; flex-direction: column; min-height: 13.5rem; height: 100%; }
+  #dlgForm .mic { margin-top: auto; margin-bottom: auto; word-break: keep-all; }
   dialog .btns .ok { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
   #dlgErr { color: var(--danger); font-size: var(--s); margin: 0.25rem 0; }
   #dlgErr:empty { display: none; }
@@ -555,7 +555,7 @@
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
-const APP_VERSION = 'v107'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
+const APP_VERSION = 'v108'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
 // '…니다.' 뒤에서 줄을 바꾼다(화면에는 white-space: pre-line으로 표시).
@@ -939,19 +939,31 @@ function openEdit(no) {
   setTimeout(() => { $('eName').focus(); $('eName').select(); placeDlg(); }, 0);
 }
 // 수정창을 보이는 화면(글자판이 올라오면 그 위쪽 영역)의 세로 가운데에 놓는다.
+let maxVH = window.innerHeight; // 글자판이 없을 때의 가장 큰 화면 높이(글자판이 올라왔는지 판단하는 기준)
+window.addEventListener('orientationchange', () => setTimeout(() => { maxVH = window.innerHeight; placeDlg(); }, 400));
 function placeDlg() {
   const d = $('dlg');
   if (!d.open) return;
   const vv = window.visualViewport;
   const h = vv ? vv.height : window.innerHeight;
   const off = vv ? vv.offsetTop : 0;
-  // 가운데보다 조금 위(35%)에 두어 아래 버튼이 글자판에서 멀어지게 한다.
+  maxVH = Math.max(maxVH, h);
+  if (h < maxVH - 120) {
+    // 글자판이 올라와 있으면 수정창을 화면 맨 위부터 글자판 바로 위까지 세로로 확장한다.
+    d.style.setProperty('height', (h - 16) + 'px', 'important');
+    d.style.setProperty('max-height', 'none', 'important');
+    d.style.setProperty('margin-top', (off + 8) + 'px', 'important');
+    return;
+  }
+  d.style.removeProperty('height');
+  d.style.removeProperty('max-height');
+  // 글자판이 없으면 가운데보다 조금 위(35%)에 둔다.
   const top = off + Math.max(8, (h - d.offsetHeight) * 0.35);
   d.style.setProperty('margin-top', top + 'px', 'important');
 }
 if (window.visualViewport) { visualViewport.addEventListener('resize', placeDlg); visualViewport.addEventListener('scroll', placeDlg); }
 window.addEventListener('resize', placeDlg);
-$('dlg').addEventListener('close', () => $('dlg').style.removeProperty('margin-top'));
+$('dlg').addEventListener('close', () => ['margin-top', 'height', 'max-height'].forEach(p => $('dlg').style.removeProperty(p)));
 $('eCancel').addEventListener('click', () => $('dlg').close());
 // 일련번호는 키이므로 삭제하지 않는다. 내용만 비우고 '삭제됨'으로 표시한다(금액을 다시 입력하면 복구).
 $('eDel').addEventListener('click', async () => {
