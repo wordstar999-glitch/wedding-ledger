@@ -13,7 +13,7 @@
     --t: 1.25rem;   /* 모든 주요 글자 크기(설정의 미리보기와 같음) */
     --s: .9375rem;  /* 보조 글자 크기(설명, 작은 라벨) */
     --bg: #f2f8fd; --surface: #ffffff; --border: #cfe0ef; --text: #101c28; --text2: #4f6479;
-    --excel-bg: #a8e063; --excel-line: #7dc43a; --excel-fg: #1b3300; --hint: #b45309; --strong: #0b3d6b; --comp-text: #c2410c; --comp-line: #f97316; --comp-bg: #ffedd5; --accent: #1d6fb8; --on-accent: #fff; --accent-fg: #1d6fb8; --accent-bg: #dcecfa; --gold: #38bdf8;
+    --excel-bg: #a8e063; --excel-line: #7dc43a; --excel-fg: #1b3300; --hint: #b45309; --strong: #0b3d6b; --comp-text: #b23a0b; --comp-line: #f97316; --comp-bg: #ffedd5; --accent: #1d6fb8; --on-accent: #fff; --accent-fg: #1d6fb8; --accent-bg: #dcecfa; --gold: #38bdf8;
     --open-head: #fde9a0; --open-body: #fff8dc; --open-line: #e2b93b; --open-fg: #5a4300; --danger: #b91c1c; --ok: #15803d;
   }
   @media (prefers-color-scheme: dark) {
@@ -116,8 +116,8 @@
     display: flex; align-items: center; justify-content: center; font-size: var(--t); font-weight: 800;
   }
   .amt-disp.empty { flex-direction: column; gap: 0.05rem; text-align: center; min-height: 3.1rem; padding: 0 0.25rem; line-height: 1.2; }
-  .amt-disp .h1 { font-size: calc(var(--t) * 0.9); font-weight: 900; color: var(--strong); }
-  .amt-disp .h2 { font-size: calc(var(--s) * 0.95); font-weight: 800; color: var(--strong); }
+  .amt-disp .h1 { font-size: calc(var(--t) * 0.9); font-weight: 900; color: var(--comp-text); }
+  .amt-disp .h2 { font-size: calc(var(--s) * 0.95); font-weight: 800; color: var(--comp-text); }
   .presets { flex: 4 1 0; grid-auto-rows: minmax(3.25rem, 1fr); display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.625rem; }
   .presets button {
     height: auto; border-radius: 0.875rem; border: 2px solid var(--border); background: var(--surface);
@@ -155,7 +155,7 @@
   #fNo, .tools #fDup { display: flex; align-items: center; justify-content: center; gap: 0.3em; line-height: 1.2; }
   #fNo span, #fNo b, .tools #fDup span, .tools #fDup b { display: block; line-height: 1.2; }
   .tools #btnXlsx { background: var(--excel-bg); border-color: var(--excel-line); color: var(--excel-fg); }
-  .srch-cap { font-size: var(--s); font-weight: 800; color: var(--strong); margin-bottom: -0.25rem; }
+  .srch-cap { font-size: var(--s); font-weight: 800; color: var(--comp-text); margin-top: -0.25rem; }
   #q::placeholder { color: var(--strong); font-weight: 800; opacity: 1; }
   .srch { display: grid; grid-template-columns: 1fr 1fr; gap: 0.625rem; }
   #fNo { width: 100%; min-width: 0; min-height: 3.25rem; padding: 0 .4rem; white-space: nowrap; border-radius: 12px; border: 2px solid var(--border); background: var(--surface); color: var(--text); font-size: var(--t); font-weight: 800; }
@@ -336,11 +336,11 @@
     <button id="btnXlsx" type="button" class="fill">엑셀 저장</button>
     <button id="fDup" type="button" aria-pressed="false"><span>동명이인</span><b id="fDupN">0</b></button>
   </div>
-  <div class="srch-cap">초성(ㄱㅊㅅ)으로도 찾을 수 있습니다.</div>
   <div class="srch">
     <input id="q" type="search" placeholder="이름 검색" aria-label="검색">
     <button id="fNo" type="button" aria-pressed="false"><span>이름 없음</span><b id="fNoN">0</b></button>
   </div>
+  <div class="srch-cap">초성(ㄱㅊㅅ)으로도 찾을 수 있습니다.</div>
   <ul id="list"></ul>
 </main>
 
@@ -532,7 +532,7 @@
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
-const APP_VERSION = 'v85'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
+const APP_VERSION = 'v86'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
 // '…니다.' 뒤에서 줄을 바꾼다(화면에는 white-space: pre-line으로 표시).
