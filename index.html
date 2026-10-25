@@ -104,6 +104,11 @@
     color: var(--comp-text); border: 3px solid var(--comp-line); border-radius: 0.875rem; background: var(--surface);
     transition: transform .15s, background-color .15s;
   }
+  #prevEdit {
+    flex: 0 0 auto; min-width: 5.5rem; padding: 0 .875rem; border: 3px solid var(--comp-line); border-radius: .875rem;
+    background: var(--comp-bg); color: var(--comp-text); font-size: var(--t); font-weight: 900; line-height: 1.2;
+  }
+  #prevEdit:active { transform: scale(.97); }
   #no.bump { transform: scale(1.06); background: var(--comp-bg); }
   #no.dup { border-color: var(--danger); background: var(--danger); color: #fff; }
   .amt-disp {
@@ -309,6 +314,7 @@
     <div class="no-row">
       <label for="no">No.</label>
       <input id="no" type="number" inputmode="numeric" min="1" step="1" value="1" aria-label="일련번호">
+      <button id="prevEdit" type="button">이전 수정</button>
     </div>
     <div class="amt-disp empty" id="amtDisp">금액을 선택하세요</div>
     <div class="presets" id="presets"></div>
@@ -460,7 +466,7 @@
         <li><b>금액 버튼</b>을 누르면 바로 저장됩니다.</li>
         <li><b>번호</b>는 저장할 때마다 자동으로 올라갑니다. 바꾸려면 번호 칸을 누르세요.</li>
         <li><b>없는 금액</b>은 '직접 입력'에 만원 단위로 쓰세요. 예: 7 → 7만원</li>
-        <li><b>잘못 눌렀다면</b> 정산 탭에서 번호를 찾아 수정합니다.</li>
+        <li><b>잘못 눌렀다면</b> '이전 수정'을 누르면 방금 저장한 번호를 고칠 수 있고, 정산 탭에서 번호를 찾아 수정해도 됩니다.</li>
         <li><b>이름과 수정</b>은 정산 탭에서 합니다.</li>
       </ul></div>
     </details>
@@ -526,7 +532,7 @@
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
-const APP_VERSION = 'v79'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
+const APP_VERSION = 'v80'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
 // '…니다.' 뒤에서 줄을 바꾼다(화면에는 white-space: pre-line으로 표시).
@@ -687,7 +693,7 @@ function renderAmount() {
     d.textContent = fmtMan(amount) + '만원';
   } else {
     const a = document.createElement('span'); a.className = 'h1'; a.textContent = '아래 금액을 누르면 입력됩니다.';
-    const b = document.createElement('span'); b.className = 'h2'; b.textContent = '수정은 정산 탭에서 하세요.';
+    const b = document.createElement('span'); b.className = 'h2'; b.textContent = '잘못 눌렀다면 '이전 수정'을 누르세요.';
     d.append(a, b);
   }
   d.classList.toggle('empty', !amount);
@@ -798,6 +804,14 @@ async function save() {
   renderAmount();
 }
 $('save').addEventListener('click', save);
+// 가장 최근에 저장한 번호의 수정창을 연다(자동 저장 후 다음 빈 항목으로 넘어가지 않도록 자동 모드는 끈다).
+$('prevEdit').addEventListener('click', () => {
+  let last = null;
+  entries.forEach(e => { if (!e.void && e.amount > 0 && (!last || e.ts > last.ts || (e.ts === last.ts && e.no > last.no))) last = e; });
+  if (!last) return toast('수정할 이전 입력이 없습니다', true);
+  openEdit(last.no);
+  autoArmed = false;
+});
 
 /* ---------- 정산 화면 ---------- */
 // 초성 검색: 검색어의 자음(ㄱ~ㅎ)은 이름 글자의 초성과, 그 외 글자는 그대로 비교한다. 예: "ㄱㅊㅅ", "김ㅊ"
