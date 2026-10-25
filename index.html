@@ -166,7 +166,7 @@
   #fNo span, #fNo b, #fDup span, #fDup b { display: block; line-height: 1.2; }
   .tools #btnXlsx { background: var(--excel-bg); border-color: var(--excel-line); color: var(--excel-fg); }
   /* 한 줄 세 칸(엑셀 저장 · 엑셀 공유 · 백업 저장)이 폰 한 줄에 들어가도록 글자를 화면 폭에 맞춘다. */
-  .tools button { min-width: 0; padding: 0 0.15rem; white-space: nowrap; font-size: min(calc(var(--t) * 0.8), 4.2vw); line-height: 1.2; }
+  .tools button { min-width: 0; padding: 0 0.15rem; white-space: nowrap; font-size: min(calc(var(--t) * 0.85), 4.6vw); line-height: 1.2; }
   .srch-cap { font-size: var(--s); font-weight: 800; color: var(--comp-text); margin-top: -0.25rem; }
   #q::placeholder { color: var(--strong); font-weight: 800; opacity: 1; }
   .srch { display: grid; grid-template-columns: 1.6fr 1fr; gap: 0.35rem; }
@@ -177,7 +177,7 @@
   /* 이름 검색 줄 세 칸의 글자 크기를 맞춘다. */
   #q { font-size: min(calc(var(--t) * 0.85), 4.6vw); }
   #fNo { font-size: min(calc(var(--t) * 0.85), 4.6vw); }
-  #fDup { font-size: min(calc(var(--t) * 0.8), 4.2vw); gap: 0.2em; }
+  #fDup { font-size: min(calc(var(--t) * 0.85), 4.6vw); gap: 0.2em; }
   .dup-tag { display: inline-block; margin-left: 0.35rem; padding: 0 0.4rem; border-radius: 999px; background: var(--comp-bg); border: 1px solid var(--comp-line); color: var(--comp-text); font-size: calc(var(--s) * 0.85); font-weight: 900; line-height: 1.35; vertical-align: middle; position: relative; top: calc(var(--t) * -0.1); }
   #q { width: 100%; min-width: 0; text-align: center;
     height: 3.25rem; padding: 0 0.2rem; border: 2px solid var(--border); border-radius: 0.75rem; background: var(--surface);
@@ -555,7 +555,7 @@
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
-const APP_VERSION = 'v104'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
+const APP_VERSION = 'v105'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
 // '…니다.' 뒤에서 줄을 바꾼다(화면에는 white-space: pre-line으로 표시).
