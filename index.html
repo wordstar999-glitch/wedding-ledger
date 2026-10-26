@@ -168,8 +168,12 @@
   .tools #btnXlsx { background: var(--excel-bg); border-color: var(--excel-line); color: var(--excel-fg); }
   /* 한 줄 세 칸(엑셀 저장 · 엑셀 공유 · 백업 저장)이 폰 한 줄에 들어가도록 글자를 화면 폭에 맞춘다. */
   .tools button { min-width: 0; padding: 0 0.15rem; white-space: nowrap; font-size: min(calc(var(--t) * 0.85), 4.6vw); line-height: 1.2; }
-  .srch-cap { font-size: var(--s); font-weight: 800; color: var(--comp-text); margin-top: -0.25rem; }
-  #q::placeholder { color: var(--strong); font-weight: 800; opacity: 1; }
+  /* 검색창 안내: 입력칸이 비어 있을 때만 '이름 검색'(큰 글자)과 괄호 안 설명(작은 글자)을 한 줄로 보여준다. */
+  .q-wrap { position: relative; }
+  .q-hint { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; gap: .35em; padding: 0 .4rem; pointer-events: none; white-space: nowrap; overflow: hidden; color: var(--strong); font-weight: 800; font-size: min(calc(var(--t) * 0.85), 4.6vw); }
+  .q-hint small { font-size: .68em; font-weight: 700; color: var(--comp-text); }
+  #q:placeholder-shown + .q-hint { display: flex; }
+  #q::placeholder { color: transparent; opacity: 1; }
   .filters { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.35rem; }
   #fNo { width: 100%; min-width: 0; min-height: 2.75rem; padding: 0 .1rem; white-space: nowrap; border-radius: 12px; border: 2px solid var(--border); background: var(--surface); color: var(--text); font-weight: 800; }
   #fNo.on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
@@ -189,10 +193,10 @@
     height: 2.75rem; padding: 0 0.2rem; border: 2px solid var(--border); border-radius: 0.75rem; background: var(--surface);
   }
   #q:focus { outline: none; border-color: var(--accent); }
-  #list { flex: 1; min-height: 0; overflow-y: auto; margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
+  #list { flex: 1; min-height: 0; overflow-y: auto; margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 0.35rem; }
   #list li {
     display: grid; grid-template-columns: 4rem 1fr auto; align-items: center; gap: 0.625rem;
-    min-height: 4rem; padding: 0.5rem 0.875rem; background: var(--surface); border: 1px solid var(--border); border-radius: 0.75rem;
+    min-height: 3.25rem; padding: 0.3rem 0.875rem; background: var(--surface); border: 1px solid var(--border); border-radius: 0.75rem;
   }
   #list .n { font-size: var(--t); font-weight: 800; color: var(--accent-fg); }
   #list .nm { font-size: var(--t); min-width: 0; overflow-wrap: anywhere; }
@@ -370,8 +374,10 @@
     <button id="fNo" type="button" aria-pressed="false"><span>이름 없음</span><b id="fNoN">0</b></button>
     <button id="fChk" type="button" aria-pressed="false"><span id="fChkL">체킹완료</span><b id="fChkN">0</b></button>
   </div>
-  <input id="q" type="search" placeholder="이름 검색" aria-label="검색">
-  <div class="srch-cap">초성(ㄱㅊㅅ)으로도 찾을 수 있습니다.</div>
+  <div class="q-wrap">
+    <input id="q" type="search" placeholder=" " aria-label="이름 검색 (초성으로도 찾을 수 있습니다)">
+    <div class="q-hint" aria-hidden="true">이름 검색 <small>(초성 ㄱㅊㅅ으로도 찾을 수 있습니다)</small></div>
+  </div>
   <ul id="list"></ul>
 </main>
 
@@ -570,7 +576,7 @@
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
-const APP_VERSION = 'v111'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
+const APP_VERSION = 'v112'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
 // '…니다.' 뒤에서 줄을 바꾼다(화면에는 white-space: pre-line으로 표시).
