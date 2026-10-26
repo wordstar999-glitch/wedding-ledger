@@ -427,13 +427,13 @@
         <button id="bBackup" type="button" class="fill">백업 저장</button>
         <button id="bRestore" type="button">복원</button>
       </div>
-      <button id="bExport" type="button" class="copy-btn">파일로 내보내기</button>
+      <button id="bExport" type="button" class="copy-btn">백업 파일 내보내기</button>
       <input id="bFile" type="file" accept=".json,application/json" hidden>
       <button id="bReset" type="button" class="danger-btn">새로 시작 (현재 내용 모두 삭제)</button>
       <div class="legend">
-        <div><b>백업 저장</b> 앱 안에 사본 저장 (최근 10개)</div>
-        <div><b>복원</b> 선택한 사본으로 되돌리기</div>
-        <div><b>파일로 내보내기</b> 앱 밖에 보관 (앱을 지워도 남음)</div>
+        <div><b>백업 저장</b> 이 폰의 이 앱 안에 백업 사본 저장 (최근 10개)</div>
+        <div><b>복원</b> 앱 안의 백업 사본으로 되돌리기</div>
+        <div><b>백업 파일 내보내기</b> 폰의 다운로드 폴더에 백업 파일로 저장 (앱을 지워도 남음)</div>
         <div><b>새로 시작</b> 앱 안의 내용 삭제 전에 자동 백업</div>
       </div>
       <div id="bMsg" class="upd-msg" role="status">내보낸 파일에는 하객 이름·금액이 들어 있습니다. 보관에 주의하세요.</div>
@@ -499,7 +499,8 @@
         <li><b>말하기 입력</b>은 인터넷이 필요합니다.</li>
         <li><b>말하기로 이름을 입력</b>하면 0.1초 뒤 자동 저장되고 다음 빈 항목이 열립니다. 키보드로 입력할 때는 저장 버튼을 누르세요.</li>
         <li><b>동명이인</b> 버튼을 누르면 동명이인만 모아 표시하고, 이름 옆에 '동명'이 붙습니다.</li>
-        <li><b>엑셀 저장</b> 뒤에는 내 파일 → 다운로드에서 파일을 길게 눌러 보내세요.</li>
+        <li><b>엑셀 저장</b>: 번호·이름·금액·비고를 표로 저장합니다. 정리하거나 보낼 때 쓰세요. 앱으로 다시 불러올 수는 없습니다.</li>
+        <li><b>백업 저장</b>: 지금 장부를 앱 안에 사본으로 저장합니다. 잘못 고치거나 지웠을 때 복원에 씁니다.</li>
         <li><b>삭제</b>해도 번호는 남습니다. 금액을 다시 입력하면 되살아납니다.</li>
       </ul></div>
     </details>
@@ -507,10 +508,10 @@
       <summary>설정</summary>
       <div class="sec-body"><ul>
         <li><b>행사 정보</b>에 이름과 날짜를 적어 두세요. 파일 이름에 들어갑니다.</li>
-        <li><b>백업 저장</b>: 앱 안에 사본을 저장합니다. (최근 10개)</li>
-        <li><b>복원</b>: 선택한 사본으로 되돌립니다.</li>
-        <li><b>파일로 내보내기</b>: 앱 밖에 보관합니다. 앱을 지워도 남습니다.</li>
-        <li><b>행사 중간</b>엔 백업 저장, <b>끝나면</b> 파일로 내보내기를 꼭 하세요.</li>
+        <li><b>백업 저장</b>: 이 폰의 이 앱 안에 사본을 저장합니다. (최근 10개)</li>
+        <li><b>복원</b>: 앱 안의 사본으로 되돌립니다.</li>
+        <li><b>백업 파일 내보내기</b>: 폰의 다운로드 폴더에 백업 파일로 저장합니다. 앱을 지워도 남습니다.</li>
+        <li><b>행사 중간</b>엔 백업 저장, <b>끝나면</b> 백업 파일 내보내기를 꼭 하세요.</li>
       </ul></div>
     </details>
     <details class="sec" data-h="etc">
@@ -518,7 +519,8 @@
       <div class="sec-body"><ul>
         <li><b>설치</b>는 전달받은 주소를 클릭하면 할 수 있습니다.</li>
         <li><b>인터넷이 없어도</b> 쓸 수 있습니다. 말하기 입력만 인터넷이 필요합니다.</li>
-        <li><b>장부는 이 휴대폰에만</b> 저장됩니다. 앱을 지우면 사라지니 파일로 내보내 두세요.</li>
+        <li><b>장부는 이 휴대폰에만</b> 저장됩니다. 앱을 지우면 사라지니 백업 파일을 내보내 두세요.</li>
+        <li><b>엑셀 파일</b>은 보는 용도이고, <b>백업 파일</b>은 되돌리는 용도입니다.</li>
         <li><b>새 버전</b>은 앱을 두 번 열면 적용됩니다.</li>
       </ul></div>
     </details>
@@ -555,7 +557,7 @@
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
-const APP_VERSION = 'v109'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
+const APP_VERSION = 'v110'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
 // '…니다.' 뒤에서 줄을 바꾼다(화면에는 white-space: pre-line으로 표시).
@@ -1117,7 +1119,7 @@ function download(file) {
 $('btnXlsx').addEventListener('click', () => {
   if (!entries.size) return toast('내보낼 내역이 없습니다', true);
   download(makeFile());
-  showUndo('엑셀 저장됨. 내 파일 → 다운로드에서 보내세요.', async () => { const r = await exportBackupFile(); if (r !== 'cancel') toast('파일로 내보냈습니다'); }, '백업 내보내기', 7000);
+  showUndo('엑셀 저장됨. 내 파일 → 다운로드에서 보내세요.', async () => { const r = await exportBackupFile(); if (r !== 'cancel') toast('백업 파일을 내보냈습니다'); }, '백업 파일 내보내기', 7000);
 });
 /* 일련번호 숫자의 세로 가운데: 입력칸 글자는 투명으로 두고, 숫자 모양의 실제 높이를 재서 SVG로 칸 한가운데에 그린다.
    (기기 글꼴마다 줄 안에서 숫자가 놓이는 높이가 달라 CSS만으로는 맞출 수 없다.) */
@@ -1144,7 +1146,7 @@ function drawNo() {
 (function loop() { drawNo(); requestAnimationFrame(loop); })();
 $('btnBackupSum').addEventListener('click', async () => {
   if (!entries.size) return toast('백업할 내역이 없습니다', true);
-  try { await saveBackupFile('manual'); } catch { return toast('백업하지 못했습니다. 설정의 파일로 내보내기를 사용하세요', true); }
+  try { await saveBackupFile('manual'); } catch { return toast('백업하지 못했습니다. 설정의 백업 파일 내보내기를 사용하세요', true); }
   toast('백업했습니다');
 });
 /* ---------- 탭 ---------- */
@@ -1404,7 +1406,7 @@ function refreshAll() {
 }
 $('bBackup').addEventListener('click', async () => {
   if (!entries.size) return bMsg('백업할 내역이 없습니다', 'err');
-  try { await saveBackupFile('manual'); } catch { return bMsg('백업하지 못했습니다. 파일로 내보내기를 사용하세요.', 'err'); }
+  try { await saveBackupFile('manual'); } catch { return bMsg('백업하지 못했습니다. 백업 파일 내보내기를 사용하세요.', 'err'); }
   bMsg('백업했습니다.', 'ok');
   toast('백업했습니다');
 });
@@ -1412,7 +1414,7 @@ $('bExport').addEventListener('click', async () => {
   if (!entries.size) return bMsg('내보낼 내역이 없습니다', 'err');
   const r = await exportBackupFile();
   if (r === 'cancel') return bMsg('내보내기를 취소했습니다.');
-  bMsg(r === 'shared' ? '저장할 곳을 선택해 내보냈습니다.' : '파일로 내보냈습니다.', 'ok');
+  bMsg(r === 'shared' ? '저장할 곳을 선택해 백업 파일을 내보냈습니다.' : '백업 파일을 내보냈습니다. 다운로드 폴더에서 찾을 수 있습니다.', 'ok');
 });
 $('bRestore').addEventListener('click', async () => { bdShowAll = false; await renderBackupList(); $('bdlg').showModal(); });
 // 복원 전 미리보기: 불러올 백업과 현재 장부를 나란히 보여주고 확인을 받는다.
