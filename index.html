@@ -151,36 +151,42 @@
   #save:active { filter: brightness(.9); }
 
   /* 정산 화면 */
-  .totals { display: grid; grid-template-columns: 1fr 1fr; gap: 0.625rem; }
-  .totals div { min-width: 0; text-align: center; background: var(--surface); border: 1px solid var(--border); border-radius: 0.875rem; padding: 0.625rem 0.4rem; }
+  #vSum { gap: 0.5rem; }
+  .totals { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+  .totals div { min-width: 0; text-align: center; background: var(--surface); border: 1px solid var(--border); border-radius: 0.75rem; padding: 0.3rem 0.4rem; line-height: 1.25; }
   .totals b.long { font-size: calc(var(--t) * 0.8); }
-  .totals small { display: block; color: var(--text2); font-size: var(--s); }
+  .totals small { display: block; color: var(--text2); font-size: calc(var(--s) * 0.92); }
   .totals b { font-size: var(--t); }
   .tools { display: flex; gap: 0.35rem; }
   .tools button {
-    flex: 1; min-height: 3.5rem; border-radius: 0.75rem; border: 2px solid var(--accent); background: var(--surface);
+    flex: 1; min-height: 3rem; border-radius: 0.75rem; border: 2px solid var(--accent); background: var(--surface);
     color: var(--accent-fg); font-size: var(--t); font-weight: 800;
   }
   .tools button.fill { background: var(--accent); color: var(--on-accent); }
-  #fNo, #fDup { display: flex; align-items: center; justify-content: center; gap: 0.3em; line-height: 1.2; }
-  #fNo span, #fNo b, #fDup span, #fDup b { display: block; line-height: 1.2; }
+  #fNo, #fDup, #fChk { display: flex; align-items: center; justify-content: center; gap: 0.3em; line-height: 1.2; }
+  #fNo span, #fNo b, #fDup span, #fDup b, #fChk span, #fChk b { display: block; line-height: 1.2; }
   .tools #btnXlsx { background: var(--excel-bg); border-color: var(--excel-line); color: var(--excel-fg); }
   /* 한 줄 세 칸(엑셀 저장 · 엑셀 공유 · 백업 저장)이 폰 한 줄에 들어가도록 글자를 화면 폭에 맞춘다. */
   .tools button { min-width: 0; padding: 0 0.15rem; white-space: nowrap; font-size: min(calc(var(--t) * 0.85), 4.6vw); line-height: 1.2; }
   .srch-cap { font-size: var(--s); font-weight: 800; color: var(--comp-text); margin-top: -0.25rem; }
   #q::placeholder { color: var(--strong); font-weight: 800; opacity: 1; }
-  .srch { display: grid; grid-template-columns: 1.6fr 1fr; gap: 0.35rem; }
-  #fNo { width: 100%; min-width: 0; min-height: 3.25rem; padding: 0 .1rem; white-space: nowrap; border-radius: 12px; border: 2px solid var(--border); background: var(--surface); color: var(--text); font-weight: 800; }
+  .filters { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.35rem; }
+  #fNo { width: 100%; min-width: 0; min-height: 2.75rem; padding: 0 .1rem; white-space: nowrap; border-radius: 12px; border: 2px solid var(--border); background: var(--surface); color: var(--text); font-weight: 800; }
   #fNo.on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
-  #fDup { width: 100%; min-width: 0; min-height: 3.25rem; padding: 0 .1rem; white-space: nowrap; border-radius: 12px; border: 2px solid var(--comp-line); background: var(--surface); color: var(--comp-text); font-weight: 800; }
+  #fDup { width: 100%; min-width: 0; min-height: 2.75rem; padding: 0 .1rem; white-space: nowrap; border-radius: 12px; border: 2px solid var(--comp-line); background: var(--surface); color: var(--comp-text); font-weight: 800; }
   #fDup.on { background: var(--comp-text); border-color: var(--comp-text); color: var(--surface); }
-  /* 이름 검색 줄 세 칸의 글자 크기를 맞춘다. */
+  /* 체킹완료 버튼: 누를 때마다 전체 → 완료만(.on) → 안 된 것만(.on2) → 전체 */
+  #fChk { width: 100%; min-width: 0; min-height: 2.75rem; padding: 0 .1rem; white-space: nowrap; border-radius: 12px; border: 2px solid var(--ok); background: var(--surface); color: var(--ok); font-weight: 800; }
+  #fChk.on { background: var(--ok); color: var(--surface); }
+  #fChk.on2 { background: var(--surface); border-style: dashed; border-width: 3px; color: var(--danger); border-color: var(--danger); }
+  .ck { color: var(--ok); margin-right: 0.35rem; font-weight: 900; }
+  /* 필터 세 칸과 검색창의 글자 크기를 맞춘다. */
   #q { font-size: min(calc(var(--t) * 0.85), 4.6vw); }
-  #fNo { font-size: min(calc(var(--t) * 0.85), 4.6vw); }
-  #fDup { font-size: min(calc(var(--t) * 0.85), 4.6vw); gap: 0.2em; }
+  #fNo, #fDup, #fChk { font-size: min(calc(var(--t) * 0.8), 4.1vw); }
+  #fDup, #fChk { gap: 0.2em; }
   .dup-tag { display: inline-block; margin-left: 0.35rem; padding: 0 0.4rem; border-radius: 999px; background: var(--comp-bg); border: 1px solid var(--comp-line); color: var(--comp-text); font-size: calc(var(--s) * 0.85); font-weight: 900; line-height: 1.35; vertical-align: middle; position: relative; top: calc(var(--t) * -0.1); }
   #q { width: 100%; min-width: 0; text-align: center;
-    height: 3.25rem; padding: 0 0.2rem; border: 2px solid var(--border); border-radius: 0.75rem; background: var(--surface);
+    height: 2.75rem; padding: 0 0.2rem; border: 2px solid var(--border); border-radius: 0.75rem; background: var(--surface);
   }
   #q:focus { outline: none; border-color: var(--accent); }
   #list { flex: 1; min-height: 0; overflow-y: auto; margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
@@ -217,6 +223,9 @@
   .erow input[type=number] { -moz-appearance: textfield; appearance: textfield; }
   .erow input::-webkit-outer-spin-button, .erow input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
   dialog .mic { width: 100%; min-height: 3.25rem; margin-top: .5rem; border-radius: 12px; border: 2px solid var(--comp-line); background: var(--comp-bg); color: var(--comp-text); font-size: var(--t); font-weight: 900; }
+  dialog label.chkrow { display: flex; align-items: center; gap: .6rem; margin: .5rem 0 0; min-height: 3rem; padding: 0 .75rem; border: 2px solid var(--ok); border-radius: 12px; color: var(--ok); font-size: var(--t); font-weight: 800; cursor: pointer; }
+  dialog .chkrow input { flex: 0 0 auto; width: 1.7rem; height: 1.7rem; min-width: 0; padding: 0; margin: 0; accent-color: var(--ok); }
+  dialog .chkrow span { min-width: 0; }
   dialog .mic.on { background: var(--danger); border-color: var(--danger); color: #fff; animation: pulse 1s infinite; }
   @keyframes pulse { 50% { opacity: .7; } }
   dialog .next { width: 100%; height: 3.75rem; margin-top: 1rem; border-radius: 12px; border: 2px solid var(--accent); font-size: var(--t); font-weight: 800; }
@@ -355,12 +364,13 @@
   <div class="tools">
     <button id="btnXlsx" type="button" class="fill">엑셀 저장</button>
     <button id="btnBackupSum" type="button">백업 저장</button>
+  </div>
+  <div class="filters">
     <button id="fDup" type="button" aria-pressed="false"><span>동명이인</span><b id="fDupN">0</b></button>
-  </div>
-  <div class="srch">
-    <input id="q" type="search" placeholder="이름 검색" aria-label="검색">
     <button id="fNo" type="button" aria-pressed="false"><span>이름 없음</span><b id="fNoN">0</b></button>
+    <button id="fChk" type="button" aria-pressed="false"><span id="fChkL">체킹완료</span><b id="fChkN">0</b></button>
   </div>
+  <input id="q" type="search" placeholder="이름 검색" aria-label="검색">
   <div class="srch-cap">초성(ㄱㅊㅅ)으로도 찾을 수 있습니다.</div>
   <ul id="list"></ul>
 </main>
@@ -466,6 +476,7 @@
       <label>금액(만)<input id="eAmt" type="text" inputmode="decimal" autocomplete="off"></label>
       <label>비고<input id="eMemo" type="text" maxlength="100" autocomplete="off" enterkeyhint="done"></label>
     </div>
+    <label class="chkrow"><input id="eChk" type="checkbox"><span>체킹 완료 (봉투 확인함)</span></label>
     <button type="button" class="mic" id="eMic">🎤 눌러서 이름 말하기 (자동 저장)</button>
     <div id="dlgErr" role="alert"></div>
     <div class="btns">
@@ -501,6 +512,8 @@
         <li><b>동명이인</b> 버튼을 누르면 동명이인만 모아 표시하고, 이름 옆에 '동명'이 붙습니다.</li>
         <li><b>엑셀 저장</b>: 번호·이름·금액·비고를 표로 저장합니다. 정리하거나 보낼 때 쓰세요. 앱으로 다시 불러올 수는 없습니다.</li>
         <li><b>백업 저장</b>: 지금 장부를 앱 안에 사본으로 저장합니다. 잘못 고치거나 지웠을 때 복원에 씁니다.</li>
+        <li><b>체킹 완료</b>: 봉투와 금액을 대조했으면 항목을 눌러 '체킹 완료'를 켜고 저장하세요. 목록에 ✓가 붙습니다.</li>
+        <li><b>체킹완료 버튼</b>은 누를 때마다 완료만 → 체킹 안 된 것만 → 전체로 바뀝니다.</li>
         <li><b>삭제</b>해도 번호는 남습니다. 금액을 다시 입력하면 되살아납니다.</li>
       </ul></div>
     </details>
@@ -557,7 +570,7 @@
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
-const APP_VERSION = 'v110'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
+const APP_VERSION = 'v111'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
 // '…니다.' 뒤에서 줄을 바꾼다(화면에는 white-space: pre-line으로 표시).
@@ -860,7 +873,7 @@ function nameMatch(name, q) {
   }
   return false;
 }
-let noNameOnly = false, dupOnly = false;
+let noNameOnly = false, dupOnly = false, chkMode = 0; // chkMode: 0 전체, 1 체킹 완료만, 2 체킹 안 된 것만
 // 같은 이름(공백·대소문자 무시)이 둘 이상인 항목을 찾는다: 이름 -> 개수
 const nameKey = n => (n || '').replace(/\s+/g, '').toLowerCase();
 function dupCounts(list) {
@@ -884,8 +897,16 @@ function renderSum() {
   $('fNo').setAttribute('aria-pressed', noNameOnly);
   $('fDup').classList.toggle('on', dupOnly);
   $('fDup').setAttribute('aria-pressed', dupOnly);
+  const nChk = live.filter(e => e.chk).length;
+  $('fChkL').textContent = chkMode === 2 ? '미체킹' : '체킹완료';
+  $('fChkN').textContent = chkMode === 2 ? live.length - nChk : nChk;
+  $('fChk').classList.toggle('on', chkMode === 1);
+  $('fChk').classList.toggle('on2', chkMode === 2);
+  $('fChk').setAttribute('aria-pressed', chkMode !== 0);
   let base = all;
-  if (noNameOnly) base = live.filter(e => !e.name);
+  if (chkMode === 1) base = live.filter(e => e.chk);
+  else if (chkMode === 2) base = live.filter(e => !e.chk);
+  else if (noNameOnly) base = live.filter(e => !e.name);
   else if (dupOnly) base = live.filter(isDup).sort((a, b) => nameKey(a.name).localeCompare(nameKey(b.name), 'ko') || a.no - b.no);
   const rows = q ? base.filter(e => String(e.no) === q || nameMatch(e.name || '', q) || (e.memo || '').toLowerCase().includes(q)) : base;
   const ul = $('list');
@@ -893,7 +914,7 @@ function renderSum() {
   if (!rows.length) {
     const li = document.createElement('div');
     li.className = 'empty-msg';
-    li.textContent = !all.length ? '저장된 내역이 없습니다' : noNameOnly && !q ? '이름이 비어 있는 항목이 없습니다' : dupOnly && !q ? '동명이인이 없습니다' : '검색 결과가 없습니다';
+    li.textContent = !all.length ? '저장된 내역이 없습니다' : chkMode === 1 && !q ? '체킹 완료된 항목이 없습니다' : chkMode === 2 && !q ? '체킹 안 된 항목이 없습니다' : noNameOnly && !q ? '이름이 비어 있는 항목이 없습니다' : dupOnly && !q ? '동명이인이 없습니다' : '검색 결과가 없습니다';
     ul.appendChild(li);
     return;
   }
@@ -907,15 +928,18 @@ function renderSum() {
     nm.textContent = e.void ? '(삭제됨)' : e.name || '(이름 없음)';
     if (isDup(e)) { const t = document.createElement('span'); t.className = 'dup-tag'; t.textContent = '동명'; nm.appendChild(t); }
     if (e.memo) { const s = document.createElement('small'); s.textContent = e.memo; nm.appendChild(s); }
-    const a = document.createElement('span'); a.className = 'a'; a.textContent = e.void ? '-' : fmtMan(e.amount) + '만';
+    const a = document.createElement('span'); a.className = 'a';
+    if (e.chk && !e.void) { const c = document.createElement('span'); c.className = 'ck'; c.textContent = '✓'; a.append(c); }
+    a.append(e.void ? '-' : fmtMan(e.amount) + '만');
     li.append(n, nm, a);
     frag.appendChild(li);
   });
   ul.appendChild(frag);
 }
 $('q').addEventListener('input', renderSum);
-$('fNo').addEventListener('click', () => { noNameOnly = !noNameOnly; if (noNameOnly) dupOnly = false; renderSum(); });
-$('fDup').addEventListener('click', () => { dupOnly = !dupOnly; if (dupOnly) noNameOnly = false; renderSum(); });
+$('fNo').addEventListener('click', () => { noNameOnly = !noNameOnly; if (noNameOnly) { dupOnly = false; chkMode = 0; } renderSum(); });
+$('fDup').addEventListener('click', () => { dupOnly = !dupOnly; if (dupOnly) { noNameOnly = false; chkMode = 0; } renderSum(); });
+$('fChk').addEventListener('click', () => { chkMode = (chkMode + 1) % 3; if (chkMode) { noNameOnly = false; dupOnly = false; } renderSum(); });
 $('list').addEventListener('click', e => {
   const li = e.target.closest('li');
   if (li) openEdit(Number(li.dataset.no));
@@ -932,6 +956,7 @@ function openEdit(no) {
   stopMic();
   editing = no;
   $('eNo').value = e.no; $('eName').value = e.name || ''; $('eAmt').value = e.void ? '' : toMan(e.amount); $('eMemo').value = e.memo || '';
+  $('eChk').checked = !!e.chk && !e.void;
   $('dlgErr').textContent = e.void ? '삭제된 번호입니다. 금액을 입력하고 저장하면 복구됩니다' : '';
   $('eDel').hidden = !!e.void;
   clearAuto();
@@ -986,7 +1011,7 @@ async function commitEdit() {
   if (!old) return err('항목을 찾을 수 없습니다');
   const amt = fromMan($('eAmt').value.replace(/[^0-9.]/g, ''));
   if (!(amt > 0)) return err(old.void ? '금액을 입력하면 복구됩니다 (만원 단위)' : '금액을 확인하세요 (만원 단위, 예: 5)');
-  const next = { no: old.no, ts: old.ts, amount: amt, name: $('eName').value.trim(), memo: $('eMemo').value.trim(), void: false };
+  const next = { no: old.no, ts: old.ts, amount: amt, name: $('eName').value.trim(), memo: $('eMemo').value.trim(), chk: $('eChk').checked, void: false };
   try { await dbApply([['put', next]]); } catch { return err('저장 실패'); }
   entries.set(old.no, next);
   if (next.name) {
@@ -1005,7 +1030,8 @@ async function saveAndNext() {
   afterChange();
   const note = dupNote;
   if (note) toast(note, true);
-  if (!wasBlank) { $('dlg').close(); return; }
+  // 이름을 새로 입력한 경우에만 다음 빈 항목으로 이어 간다(체킹만 하고 저장하면 창을 닫는다).
+  if (!wasBlank || !$('eName').value.trim()) { $('dlg').close(); return; }
   const next = sorted().find(e => e.no > no && !e.name && !e.void);
   if (next) { if (!note) toast(`No.${no} 저장`); openEdit(next.no); }
   else { $('dlg').close(); if (!note) toast('이름이 비어 있는 다음 항목이 없습니다'); }
@@ -1164,7 +1190,7 @@ function show(tab) {
   if (tab === 'sum') {
     renderSum();
     // 입력 탭에서 넘어오면 방금 저장한 번호로 목록을 옮기고 잠깐 강조한다(검색·필터 중에는 건너뜀).
-    const last = from === 'input' && !$('q').value.trim() && !noNameOnly && !dupOnly ? lastSaved() : null;
+    const last = from === 'input' && !$('q').value.trim() && !noNameOnly && !dupOnly && !chkMode ? lastSaved() : null;
     const li = last && $('list').querySelector(`li[data-no="${last.no}"]`);
     if (li) {
       li.scrollIntoView({ block: 'center' });
@@ -1338,7 +1364,7 @@ function makeBackup(kind) {
     event: getEvent(),
     summary: { count: sm.count, voided: sm.voided, totalWon: sm.total, maxNo: sm.maxNo, firstAt: sm.first, lastAt: sm.last },
     hw: Math.max(hwGet(), ...entries.keys(), 0),
-    entries: sorted().map(e => ({ no: e.no, name: e.name || '', amount: e.amount || 0, memo: e.memo || '', ts: e.ts || 0, void: !!e.void })),
+    entries: sorted().map(e => ({ no: e.no, name: e.name || '', amount: e.amount || 0, memo: e.memo || '', ts: e.ts || 0, chk: !!e.chk && !e.void, void: !!e.void })),
     settings: { presets: presets.slice(), fs: readFs(), auto: autoOn, autoAmt, theme: currentTheme() },
   };
 }
@@ -1385,7 +1411,7 @@ function parseBackup(text) {
     const isVoid = e.void === true;
     const amount = isVoid ? 0 : e.amount;
     if (!Number.isInteger(amount) || amount < 0 || amount > 1e9 || (!isVoid && amount <= 0)) throw new Error(`No.${e.no} 금액이 올바르지 않습니다`);
-    list.push({ no: e.no, name: isVoid ? '' : String(e.name || '').trim().slice(0, 40), amount, memo: isVoid ? '' : String(e.memo || '').trim().slice(0, 100), ts: Number.isFinite(e.ts) ? e.ts : 0, void: isVoid });
+    list.push({ no: e.no, name: isVoid ? '' : String(e.name || '').trim().slice(0, 40), amount, memo: isVoid ? '' : String(e.memo || '').trim().slice(0, 100), ts: Number.isFinite(e.ts) ? e.ts : 0, chk: !isVoid && e.chk === true, void: isVoid });
   }
   const maxNo = Math.max(0, ...list.map(e => e.no));
   const hw = Number.isInteger(o.hw) && o.hw >= maxNo && o.hw <= 100000 ? o.hw : maxNo;
@@ -1400,7 +1426,7 @@ function parseBackup(text) {
 }
 function refreshAll() {
   renderPresets(); renderAuto(); renderAutoAmt(); renderTheme(); markSize(); renderSum();
-  amount = 0; $('manual').value = ''; $('q').value = ''; noNameOnly = false; dupOnly = false;
+  amount = 0; $('manual').value = ''; $('q').value = ''; noNameOnly = false; dupOnly = false; chkMode = 0;
   $('no').value = Math.max(0, ...entries.keys()) + 1;
   checkDup(); renderAmount(); renderSum();
 }
