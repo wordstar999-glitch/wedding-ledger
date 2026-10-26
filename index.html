@@ -155,7 +155,7 @@
   .totals { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
   .totals div { min-width: 0; text-align: center; background: var(--surface); border: 1px solid var(--border); border-radius: 0.75rem; padding: 0.3rem 0.4rem; line-height: 1.25; }
   .totals b.long { font-size: calc(var(--t) * 0.8); }
-  .totals small { display: block; color: var(--text2); font-size: calc(var(--s) * 0.92); }
+  .totals small { display: block; color: var(--text2); font-size: var(--s); }
   .totals b { font-size: var(--t); }
   .tools { display: flex; gap: 0.35rem; }
   .tools button {
@@ -167,11 +167,11 @@
   #fNo span, #fNo b, #fDup span, #fDup b, #fChk span, #fChk b { display: block; line-height: 1.2; }
   .tools #btnXlsx { background: var(--excel-bg); border-color: var(--excel-line); color: var(--excel-fg); }
   /* 한 줄 세 칸(엑셀 저장 · 엑셀 공유 · 백업 저장)이 폰 한 줄에 들어가도록 글자를 화면 폭에 맞춘다. */
-  .tools button { min-width: 0; padding: 0 0.15rem; white-space: nowrap; font-size: min(calc(var(--t) * 0.85), 4.6vw); line-height: 1.2; }
+  .tools button { min-width: 0; padding: 0 0.15rem; white-space: nowrap; font-size: var(--t); line-height: 1.2; }
   /* 검색창 안내: 입력칸이 비어 있을 때만 '이름 검색'(큰 글자)과 괄호 안 설명(작은 글자)을 한 줄로 보여준다. */
   .q-wrap { position: relative; }
-  .q-hint { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; gap: .35em; padding: 0 .4rem; pointer-events: none; white-space: nowrap; overflow: hidden; color: var(--strong); font-weight: 800; font-size: min(calc(var(--t) * 0.85), 4.6vw); }
-  .q-hint small { font-size: .68em; font-weight: 700; color: var(--comp-text); }
+  .q-hint { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; gap: .35em; padding: 0 .4rem; pointer-events: none; white-space: nowrap; overflow: hidden; color: var(--strong); font-weight: 800; font-size: min(var(--t), 5.4vw); }
+  .q-hint small { font-size: .62em; font-weight: 700; color: var(--comp-text); }
   #q:placeholder-shown + .q-hint { display: flex; }
   #q::placeholder { color: transparent; opacity: 1; }
   .filters { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.35rem; }
@@ -185,8 +185,8 @@
   #fChk.on2 { background: var(--surface); border-style: dashed; border-width: 3px; color: var(--danger); border-color: var(--danger); }
   .ck { color: var(--ok); margin-right: 0.35rem; font-weight: 900; }
   /* 필터 세 칸과 검색창의 글자 크기를 맞춘다. */
-  #q { font-size: min(calc(var(--t) * 0.85), 4.6vw); }
-  #fNo, #fDup, #fChk { font-size: min(calc(var(--t) * 0.8), 4.1vw); }
+  #q { font-size: var(--t); }
+  #fNo, #fDup, #fChk { font-size: min(calc(var(--t) * 0.8), 4.1vw); } /* 실제 크기는 fitFilters()가 칸에 맞춰 가장 크게 정한다 */
   #fDup, #fChk { gap: 0.2em; }
   .dup-tag { display: inline-block; margin-left: 0.35rem; padding: 0 0.4rem; border-radius: 999px; background: var(--comp-bg); border: 1px solid var(--comp-line); color: var(--comp-text); font-size: calc(var(--s) * 0.85); font-weight: 900; line-height: 1.35; vertical-align: middle; position: relative; top: calc(var(--t) * -0.1); }
   #q { width: 100%; min-width: 0; text-align: center;
@@ -376,7 +376,7 @@
   </div>
   <div class="q-wrap">
     <input id="q" type="search" placeholder=" " aria-label="이름 검색 (초성으로도 찾을 수 있습니다)">
-    <div class="q-hint" aria-hidden="true">이름 검색 <small>(초성 ㄱㅊㅅ으로도 찾을 수 있습니다)</small></div>
+    <div class="q-hint" aria-hidden="true">이름 검색 <small>(초성 ㄱㅊㅅ으로도 검색)</small></div>
   </div>
   <ul id="list"></ul>
 </main>
@@ -576,7 +576,7 @@
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
-const APP_VERSION = 'v112'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
+const APP_VERSION = 'v113'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
 // '…니다.' 뒤에서 줄을 바꾼다(화면에는 white-space: pre-line으로 표시).
@@ -887,6 +887,17 @@ function dupCounts(list) {
   list.forEach(e => { const k = nameKey(e.name); if (k) m.set(k, (m.get(k) || 0) + 1); });
   return m;
 }
+// 필터 세 칸의 글자를 칸 안에 들어가는 가장 큰 크기(최대 기본 글자의 95%)로 맞춘다. 숫자가 세 자리여도 잘리지 않는다.
+function fitFilters() {
+  const bs = ['fDup', 'fNo', 'fChk'].map($);
+  if (!bs[0].clientWidth) return;
+  const t = parseFloat(getComputedStyle(document.documentElement).fontSize) * 1.25;
+  let fs = t * 0.95;
+  const set = () => bs.forEach(b => { b.style.fontSize = fs + 'px'; });
+  set();
+  while (fs > t * 0.6 && bs.some(b => b.scrollWidth > b.clientWidth)) { fs -= 0.5; set(); }
+}
+window.addEventListener('resize', () => { if (!$('vSum').hidden) fitFilters(); });
 function renderSum() {
   const all = sorted();
   const live = all.filter(e => !e.void);
@@ -904,6 +915,7 @@ function renderSum() {
   $('fDup').classList.toggle('on', dupOnly);
   $('fDup').setAttribute('aria-pressed', dupOnly);
   const nChk = live.filter(e => e.chk).length;
+  setTimeout(fitFilters, 0); // 라벨이 바뀐 뒤 칸에 맞춰 글자 크기를 다시 정한다
   $('fChkL').textContent = chkMode === 2 ? '미체킹' : '체킹완료';
   $('fChkN').textContent = chkMode === 2 ? live.length - nChk : nChk;
   $('fChk').classList.toggle('on', chkMode === 1);
