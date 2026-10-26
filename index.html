@@ -576,7 +576,7 @@
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
-const APP_VERSION = 'v113'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
+const APP_VERSION = 'v114'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
 // '…니다.' 뒤에서 줄을 바꾼다(화면에는 white-space: pre-line으로 표시).
@@ -955,9 +955,11 @@ function renderSum() {
   ul.appendChild(frag);
 }
 $('q').addEventListener('input', renderSum);
-$('fNo').addEventListener('click', () => { noNameOnly = !noNameOnly; if (noNameOnly) { dupOnly = false; chkMode = 0; } renderSum(); });
-$('fDup').addEventListener('click', () => { dupOnly = !dupOnly; if (dupOnly) { noNameOnly = false; chkMode = 0; } renderSum(); });
-$('fChk').addEventListener('click', () => { chkMode = (chkMode + 1) % 3; if (chkMode) { noNameOnly = false; dupOnly = false; } renderSum(); });
+// 필터를 바꾸면 목록을 맨 위로 올린다(번호가 빠른 항목이 제일 위에 오도록).
+const listTop = () => { $('list').scrollTop = 0; };
+$('fNo').addEventListener('click', () => { noNameOnly = !noNameOnly; if (noNameOnly) { dupOnly = false; chkMode = 0; } renderSum(); listTop(); });
+$('fDup').addEventListener('click', () => { dupOnly = !dupOnly; if (dupOnly) { noNameOnly = false; chkMode = 0; } renderSum(); listTop(); });
+$('fChk').addEventListener('click', () => { chkMode = (chkMode + 1) % 3; if (chkMode) { noNameOnly = false; dupOnly = false; } renderSum(); listTop(); });
 $('list').addEventListener('click', e => {
   const li = e.target.closest('li');
   if (li) openEdit(Number(li.dataset.no));
