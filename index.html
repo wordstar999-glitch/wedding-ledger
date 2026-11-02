@@ -260,6 +260,10 @@
   .ev-line { flex: 1; min-width: 0; padding-right: 0.75rem; text-align: right; font-size: var(--s); font-weight: 700; color: var(--text2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .ev-line[hidden] { display: none; }
   #rdlg, #bdlg { width: min(96vw, 520px); }
+  #cdlg { margin: auto !important; }
+  .c-msg { margin: .5rem .35rem .75rem; font-size: var(--t); font-weight: 700; line-height: 1.5; text-align: center; white-space: pre-line; word-break: keep-all; overflow-wrap: break-word; }
+  #cdlg .btns button { min-height: 3.5rem; font-size: var(--t); }
+  #cdlg .btns .danger { background: var(--danger); border-color: var(--danger); color: #fff; }
   .bd-list { display: flex; flex-direction: column; gap: 0.4rem; max-height: 55vh; overflow-y: auto; margin-bottom: .5rem; }
   .bd-ev { margin-top: 0.25rem; font-size: var(--s); font-weight: 900; color: var(--strong); overflow-wrap: anywhere; }
   .bd-item { border: 2px solid var(--border); border-radius: 0.75rem; padding: 0.4rem 0.5rem 0.4rem 0.75rem; display: flex; align-items: center; gap: 0.5rem; }
@@ -570,6 +574,14 @@
   </div>
 </dialog>
 
+<dialog id="cdlg">
+  <p id="cMsg" class="c-msg"></p>
+  <div class="btns">
+    <button type="button" id="cNo">취소</button>
+    <button type="button" id="cYes" class="ok">확인</button>
+  </div>
+</dialog>
+
 <div id="undoBar" hidden role="status">
   <span id="undoText"></span>
   <button id="undoBtn" type="button">취소</button>
@@ -580,7 +592,7 @@
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
-const APP_VERSION = 'v117'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
+const APP_VERSION = 'v118'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
 // '…니다.' 뒤에서 줄을 바꾼다(화면에는 white-space: pre-line으로 표시).
@@ -650,6 +662,23 @@ let amount = 0;
 const sorted = () => [...entries.values()].sort((a, b) => a.no - b.no);
 const nextFree = from => { let n = Math.max(1, from); while (entries.has(n)) n++; return n; };
 
+/* ---------- 확인 창: 브라우저 기본 confirm()은 사이트 주소가 앞에 붙으므로 앱 안의 창으로 대신한다 ---------- */
+function askConfirm(msg, yes = '확인', danger = false) {
+  return new Promise(res => {
+    const d = $('cdlg');
+    $('cMsg').textContent = msg;
+    $('cYes').textContent = yes;
+    $('cYes').className = danger ? 'danger' : 'ok';
+    let done = false;
+    const fin = v => { if (done) return; done = true; d.close(); res(v); };
+    $('cYes').onclick = () => fin(true);
+    $('cNo').onclick = () => fin(false);
+    d.oncancel = e => { e.preventDefault(); fin(false); }; // 뒤로 가기·Esc는 취소로 처리한다
+    d.showModal();
+    $('cNo').focus(); // 실수로 Enter를 눌러도 취소가 되도록 취소에 초점을 둔다
+  });
+}
+
 /* ---------- 알림 ---------- */
 let toastTimer;
 function toast(msg, err, ms) {
@@ -714,20 +743,20 @@ $('pNew').addEventListener('input', () => {
   const v = $('pNew').value.replace(/[^0-9.]/g, '');
   if (v !== $('pNew').value) $('pNew').value = v;
 });
-$('chips').addEventListener('click', e => {
+$('chips').addEventListener('click', async e => {
   const b = e.target.closest('button[data-del]');
   if (!b) return;
   const n = Number(b.dataset.del);
   if (presets.length <= 1) return pMsg('버튼은 최소 1개가 필요합니다', true);
-  if (!confirm(`${presetLabel(n)} 버튼을 삭제할까요?`)) return;
+  if (!(await askConfirm(`${presetLabel(n)} 버튼을 삭제할까요?`, '삭제', true))) return;
   presets = presets.filter(v => v !== n);
   if (amount === n && !$('manual').value) amount = 0;
   savePresets();
   pMsg(`${presetLabel(n)} 삭제됨`);
   renderPresets();
 });
-$('pReset').addEventListener('click', () => {
-  if (!confirm('금액 버튼을 기본값(3·5·10·15·20·30·50만)으로 되돌릴까요?')) return;
+$('pReset').addEventListener('click', async () => {
+  if (!(await askConfirm('금액 버튼을 기본값(3·5·10·15·20·30·50만)으로 되돌릴까요?', '되돌리기'))) return;
   presets = DEFAULT_PRESETS.slice();
   savePresets();
   pMsg('기본값으로 되돌림');
@@ -815,7 +844,7 @@ async function save() {
   if (ex && !ex.void) return toast(`No.${no}은(는) 이미 저장됨`, true);
   if (!(amount > 0)) return toast('금액을 선택하세요', true);
   const top = Math.max(hwGet(), ...entries.keys(), 0);
-  if (no > top + 1 && !confirm(`No.${no}(으)로 건너뛰면 ${top + 1}~${no - 1}번이 비어 있는 번호(삭제됨)로 채워집니다. 계속할까요?`)) return;
+  if (no > top + 1 && !(await askConfirm(`No.${no}(으)로 건너뛰면 ${top + 1}~${no - 1}번이 비어 있는 번호(삭제됨)로 채워집니다. 계속할까요?`, '계속'))) return;
   saving = true;
   clearTimeout(manualTimer);
   const prev = ex ? { ...ex } : null;
@@ -1019,7 +1048,7 @@ $('eCancel').addEventListener('click', () => $('dlg').close());
 // 일련번호는 키이므로 삭제하지 않는다. 내용만 비우고 '삭제됨'으로 표시한다(금액을 다시 입력하면 복구).
 $('eDel').addEventListener('click', async () => {
   const old = entries.get(editing);
-  if (!old || !confirm(`No.${editing} 내용을 삭제할까요?\n(번호는 유지됩니다)`)) return;
+  if (!old || !(await askConfirm(`No.${editing} 내용을 삭제할까요?\n(번호는 유지됩니다)`, '삭제', true))) return;
   const v = { no: old.no, name: '', amount: 0, memo: '', ts: old.ts, void: true };
   try { await dbApply([['put', v]]); } catch { return ($('dlgErr').textContent = '삭제 실패'); }
   entries.set(editing, v);
@@ -1582,7 +1611,7 @@ async function renderBackupList() {
       await restoreFrom(data);
     };
     rm.onclick = async () => {
-      if (!confirm('이 백업을 보관함에서 삭제할까요?')) return;
+      if (!(await askConfirm('이 백업을 보관함에서 삭제할까요?', '삭제', true))) return;
       try { await bkDel(it.id); } catch {}
       renderBackupList();
     };
@@ -1603,7 +1632,7 @@ $('bdFile').addEventListener('click', () => { $('bdlg').close(); $('bFile').valu
 // 새로 시작(현재 내용 모두 삭제). 설정의 버튼과 입력 탭의 초기화 버튼이 같이 쓴다. say(문구, 'ok'|'err')로 결과를 알린다.
 async function resetAll(say) {
   if (!entries.size) return say('초기화할 내역이 없습니다', 'err');
-  if (!confirm('현재 내용은 백업되고, 초기화 됩니다.')) return;
+  if (!(await askConfirm('현재 내용은 백업되고, 초기화 됩니다.', '초기화', true))) return;
   try { await saveBackupFile('before-reset'); } catch { return say('현재 내용 백업에 실패해 초기화하지 않았습니다', 'err'); }
   try { await dbApply([['clear']]); } catch { return say('초기화 실패: 저장소 오류', 'err'); }
   entries.clear();
