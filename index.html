@@ -145,12 +145,12 @@
   .manual span { font-size: var(--t); font-weight: 700; color: var(--text2); }
   .grow { flex: 1; min-height: 0; }
   #save {
-    flex: 1.3 1 0; min-height: 3.5rem; border: 0; border-radius: 1rem; background: var(--accent); color: var(--on-accent);
+    flex: 1.3 1 0; min-height: 3.5rem; padding: 0 .75rem; border: 2px solid var(--accent); border-radius: 1rem; background: var(--accent); color: var(--on-accent);
     font-size: var(--t); font-weight: 800;
   }
   #save:active { filter: brightness(.9); }
   /* 초기화는 되돌릴 수 없는 작업이라 저장 버튼과 확실히 구분되게 작고 테두리만 있는 빨간 버튼으로 둔다. */
-  #resetInput { flex: 0 0 auto; min-height: 2.75rem; padding: 0 .75rem; border: 2px solid var(--danger); border-radius: .875rem; background: var(--surface); color: var(--danger); font-size: calc(var(--t) * .85); font-weight: 800; }
+  #resetInput { flex: 1.3 1 0; min-height: 3.5rem; padding: 0 .75rem; border: 2px solid var(--danger); border-radius: 1rem; background: var(--surface); color: var(--danger); font-size: calc(var(--t) * .85); font-weight: 800; }
   #resetInput:active { background: var(--danger); color: #fff; }
 
   /* 정산 화면 */
@@ -580,7 +580,7 @@
 <script src="./xlsx.js"></script>
 <script>
 'use strict';
-const APP_VERSION = 'v115'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
+const APP_VERSION = 'v116'; // sw.js의 CACHE_NAME(gift-vN)과 반드시 같은 값으로 올린다.
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('ko-KR');
 // '…니다.' 뒤에서 줄을 바꾼다(화면에는 white-space: pre-line으로 표시).
